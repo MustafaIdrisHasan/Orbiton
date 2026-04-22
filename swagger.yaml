@@ -1,0 +1,697 @@
+openapi: 3.0.0
+
+info:
+  title: Orbiton API
+  version: 2.0.0
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    StandardResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        meta:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+    AuthRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+
+    SessionUser:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+
+    SessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/SessionUser'
+
+    RequestResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - newPassword
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+
+    StudentProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        full_name:
+          type: string
+        department:
+          type: string
+        program:
+          type: string
+        year_of_study:
+          type: integer
+        cgpa:
+          type: number
+        backlog_count:
+          type: integer
+
+    Resume:
+      type: object
+      properties:
+        id:
+          type: string
+        file_path:
+          type: string
+        is_active:
+          type: boolean
+
+    Drive:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - PUBLISHED
+            - CLOSED
+            - CANCELLED
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+            - APPLIED
+            - OFFERED
+            - ACCEPTED
+            - REJECTED
+
+    Offer:
+      type: object
+      properties:
+        id:
+          type: string
+        offer_status:
+          type: string
+          enum:
+            - ISSUED
+            - ACCEPTED
+            - REJECTED
+            - EXPIRED
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        400:
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        401:
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Inactive user or role issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      summary: Get authenticated session user
+      responses:
+        200:
+          description: Authenticated session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        401:
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/request-reset:
+    post:
+      tags:
+        - Auth
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestResetRequest'
+      responses:
+        200:
+          description: Reset requested
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+        400:
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        200:
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+        400:
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /recruiter/communications:
+    get:
+      tags:
+        - Recruiter
+      security:
+        - BearerAuth: []
+      summary: List recruiter broadcast history for a drive
+      parameters:
+        - in: query
+          name: driveId
+          schema:
+            type: string
+      responses:
+        200:
+          description: Broadcast history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        driveId:
+                          type: string
+                        audience:
+                          type: string
+                        message:
+                          type: string
+                        sentAt:
+                          type: string
+
+  /tpo/dashboard:
+    get:
+      tags:
+        - TPO
+      security:
+        - BearerAuth: []
+      summary: Get the TPO dashboard payload
+      responses:
+        200:
+          description: TPO dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /tpo/announcements:
+    post:
+      tags:
+        - TPO
+      security:
+        - BearerAuth: []
+      summary: Create a TPO announcement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - audience
+                - message
+              properties:
+                audience:
+                  type: string
+                message:
+                  type: string
+      responses:
+        201:
+          description: Announcement created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    type: object
+
+  /admin/dashboard:
+    get:
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      summary: Get the admin dashboard payload
+      responses:
+        200:
+          description: Admin dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /students/profile:
+    post:
+      tags:
+        - Students
+      security:
+        - BearerAuth: []
+      summary: Create student profile
+      responses:
+        200:
+          description: Profile created
+
+    patch:
+      tags:
+        - Students
+      security:
+        - BearerAuth: []
+      summary: Update student profile
+      responses:
+        200:
+          description: Profile updated
+
+    get:
+      tags:
+        - Students
+      security:
+        - BearerAuth: []
+      summary: Get own profile
+      responses:
+        200:
+          description: Profile fetched
+
+  /students/profile/{id}:
+    get:
+      tags:
+        - Students
+      security:
+        - BearerAuth: []
+      summary: Get student profile by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Profile fetched
+
+  /resumes:
+    post:
+      tags:
+        - Resumes
+      security:
+        - BearerAuth: []
+      summary: Upload resume
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                resume:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Resume uploaded
+
+  /resumes/me:
+    get:
+      tags:
+        - Resumes
+      security:
+        - BearerAuth: []
+      summary: Get my resumes
+      responses:
+        200:
+          description: Resumes fetched
+
+  /drives:
+    post:
+      tags:
+        - Drives
+      security:
+        - BearerAuth: []
+      summary: Create placement drive
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Drive'
+      responses:
+        200:
+          description: Drive created
+
+    get:
+      tags:
+        - Drives
+      security:
+        - BearerAuth: []
+      summary: Get all drives
+      responses:
+        200:
+          description: Drives fetched
+
+  /drives/{id}:
+    get:
+      tags:
+        - Drives
+      security:
+        - BearerAuth: []
+      summary: Get drive by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Drive fetched
+
+    patch:
+      tags:
+        - Drives
+      security:
+        - BearerAuth: []
+      summary: Update drive
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Drive updated
+
+  /drives/{id}/status:
+    patch:
+      tags:
+        - Drives
+      security:
+        - BearerAuth: []
+      summary: Update drive status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Drive status updated
+
+  /applications:
+    post:
+      tags:
+        - Applications
+      security:
+        - BearerAuth: []
+      summary: Apply to a drive
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - driveId
+              properties:
+                driveId:
+                  type: string
+      responses:
+        200:
+          description: Application created
+
+  /applications/me:
+    get:
+      tags:
+        - Applications
+      security:
+        - BearerAuth: []
+      summary: Get my applications
+      responses:
+        200:
+          description: Applications fetched
+
+  /applications/{id}:
+    patch:
+      tags:
+        - Applications
+      security:
+        - BearerAuth: []
+      summary: Update application
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                optedOut:
+                  type: boolean
+                status:
+                  type: string
+                  enum:
+                    - APPLIED
+                    - OFFERED
+                    - ACCEPTED
+                    - REJECTED
+      responses:
+        200:
+          description: Application updated
+
+  /rounds:
+    post:
+      tags:
+        - Rounds
+      security:
+        - BearerAuth: []
+      summary: Create round
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Round created
+
+  /rounds/{id}/results:
+    post:
+      tags:
+        - Rounds
+      security:
+        - BearerAuth: []
+      summary: Record round result
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Result recorded
+
+  /offers:
+    post:
+      tags:
+        - Offers
+      security:
+        - BearerAuth: []
+      summary: Issue offer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Offer issued
+
+  /offers/{id}:
+    patch:
+      tags:
+        - Offers
+      security:
+        - BearerAuth: []
+      summary: Respond to offer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offer_status:
+                  type: string
+                  enum:
+                    - ISSUED
+                    - ACCEPTED
+                    - REJECTED
+                    - EXPIRED
+      responses:
+        200:
+          description: Offer updated
+
+  /admin/test:
+    get:
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      summary: Admin test route
+      responses:
+        200:
+          description: Access granted

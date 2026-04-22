@@ -1,0 +1,837 @@
+openapi: 3.1.0
+info:
+  title: Orbiton API
+  version: 1.1.0
+  description: Placement management REST API for Orbiton, including recruiter dashboard and workflow contracts.
+servers:
+  - url: /api/v1
+tags:
+  - name: Auth
+  - name: Users
+  - name: Students
+  - name: Drives
+  - name: Applications
+  - name: Rounds
+  - name: Offers
+  - name: Notifications
+  - name: Recruiter
+  - name: TPO
+  - name: Admin
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    Role:
+      type: string
+      enum: [STUDENT, FACULTY, ADMIN, RECRUITER, TPO]
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+    SessionUser:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: "#/components/schemas/Role"
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+    SessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/SessionUser"
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+    DriveSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        openings:
+          type: integer
+        location:
+          type: string
+        applicationDeadline:
+          type: string
+          format: date-time
+        status:
+          type: string
+        isFeatured:
+          type: boolean
+        candidateCount:
+          type: integer
+    RecruiterDriveOption:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        openings:
+          type: integer
+        applicationDeadline:
+          type: string
+          format: date-time
+        status:
+          type: string
+    DeadlineItem:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        date:
+          type: string
+          format: date-time
+    FunnelStage:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/ApplicationStatus"
+        count:
+          type: integer
+    DepartmentCount:
+      type: object
+      properties:
+        department:
+          type: string
+        count:
+          type: integer
+    GenderRatio:
+      type: object
+      properties:
+        male:
+          type: integer
+        female:
+          type: integer
+        other:
+          type: integer
+    RecruiterDashboardResponse:
+      type: object
+      properties:
+        recruiter:
+          type: object
+          properties:
+            id:
+              type: string
+            userId:
+              type: string
+            companyName:
+              type: string
+            designation:
+              type: string
+        activeDrive:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            openings:
+              type: integer
+            location:
+              type: string
+            applicationDeadline:
+              type: string
+              format: date-time
+            status:
+              type: string
+            roundDeadlines:
+              type: array
+              items:
+                $ref: "#/components/schemas/DeadlineItem"
+        funnel:
+          type: array
+          items:
+            $ref: "#/components/schemas/FunnelStage"
+        quickStats:
+          type: object
+          properties:
+            totalApplications:
+              type: integer
+            shortlistedCandidates:
+              type: integer
+            selectedCandidates:
+              type: integer
+            offeredCandidates:
+              type: integer
+        demographics:
+          type: object
+          properties:
+            genderRatio:
+              $ref: "#/components/schemas/GenderRatio"
+            departmentCounts:
+              type: array
+              items:
+                $ref: "#/components/schemas/DepartmentCount"
+    ApplicationStatus:
+      type: string
+      enum: [APPLIED, SHORTLISTED, INTERVIEW, SELECTED, OFFERED, REJECTED]
+    CandidateListItem:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        serialNo:
+          type: integer
+        name:
+          type: string
+        branch:
+          type: string
+        rollNumber:
+          type: string
+        cgpa:
+          type: number
+        backlogs:
+          type: integer
+        skills:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/ApplicationStatus"
+        currentRound:
+          type: string
+    CandidateListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CandidateListItem"
+        total:
+          type: integer
+    CandidateProfile:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        driveId:
+          type: string
+        driveTitle:
+          type: string
+        personalDetails:
+          type: object
+          properties:
+            name:
+              type: string
+            rollNumber:
+              type: string
+            branch:
+              type: string
+            year:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+              format: email
+        academics:
+          type: object
+          properties:
+            cgpa:
+              type: number
+            backlogs:
+              type: integer
+        skills:
+          type: array
+          items:
+            type: string
+        projects:
+          type: array
+          items:
+            type: string
+        resumePreview:
+          type: string
+        testScores:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              value:
+                type: string
+        notes:
+          type: string
+        status:
+          $ref: "#/components/schemas/ApplicationStatus"
+        currentRound:
+          type: string
+    ApplicationActionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        applicationId:
+          type: string
+        driveId:
+          type: string
+        status:
+          $ref: "#/components/schemas/ApplicationStatus"
+        currentRound:
+          type: string
+    RecruiterInterview:
+      type: object
+      properties:
+        id:
+          type: string
+        driveId:
+          type: string
+        candidateId:
+          type: string
+        candidateName:
+          type: string
+        round:
+          type: string
+        slot:
+          type: string
+          format: date-time
+        mode:
+          type: string
+        panel:
+          type: string
+        feedbackStatus:
+          type: string
+    RecruiterInterviewCreateRequest:
+      type: object
+      required: [driveId, candidateId, candidateName, slot]
+      properties:
+        driveId:
+          type: string
+        candidateId:
+          type: string
+        candidateName:
+          type: string
+        round:
+          type: string
+        slot:
+          type: string
+          format: date-time
+        mode:
+          type: string
+        panel:
+          type: string
+    RecruiterInterviewListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecruiterInterview"
+    BroadcastRequest:
+      type: object
+      required: [driveId, audience, message]
+      properties:
+        driveId:
+          type: string
+        audience:
+          type: string
+        message:
+          type: string
+    BroadcastResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        item:
+          type: object
+          properties:
+            id:
+              type: string
+            driveId:
+              type: string
+            audience:
+              type: string
+            message:
+              type: string
+            sentAt:
+              type: string
+              format: date-time
+            isRead:
+              type: boolean
+    ExportOption:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        format:
+          type: string
+    ExportListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportOption"
+    NotificationListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+        unreadCount:
+          type: integer
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log a user in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: JWT token for a seeded account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the authenticated session user
+      responses:
+        "200":
+          description: Authenticated session payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      responses:
+        "200":
+          description: Refresh scaffold response
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      responses:
+        "200":
+          description: User list
+    post:
+      tags: [Users]
+      summary: Create a user
+      responses:
+        "201":
+          description: User created
+  /students/profile/me:
+    get:
+      tags: [Students]
+      summary: Get authenticated student profile
+      responses:
+        "200":
+          description: Student profile
+  /drives:
+    get:
+      tags: [Drives]
+      summary: List placement drives
+      responses:
+        "200":
+          description: Drive list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resource:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DriveSummary"
+    post:
+      tags: [Drives]
+      summary: Create a placement drive
+      responses:
+        "201":
+          description: Drive created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriveSummary"
+  /applications/apply/{driveId}:
+    post:
+      tags: [Applications]
+      summary: Apply to a drive
+      parameters:
+        - in: path
+          name: driveId
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Application accepted
+  /rounds:
+    get:
+      tags: [Rounds]
+      summary: List rounds
+      responses:
+        "200":
+          description: Round list
+  /offers:
+    get:
+      tags: [Offers]
+      summary: List offers
+      responses:
+        "200":
+          description: Offer list
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      responses:
+        "200":
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationListResponse"
+  /recruiter/dashboard:
+    get:
+      tags: [Recruiter]
+      summary: Get recruiter dashboard for the selected drive
+      parameters:
+        - in: query
+          name: driveId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recruiter dashboard payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecruiterDashboardResponse"
+  /recruiter/drives:
+    get:
+      tags: [Recruiter]
+      summary: List recruiter-owned drives for the dashboard selector
+      responses:
+        "200":
+          description: Recruiter drive options
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RecruiterDriveOption"
+  /recruiter/drives/{driveId}/candidates:
+    get:
+      tags: [Recruiter]
+      summary: List candidates for a recruiter-owned drive
+      parameters:
+        - in: path
+          name: driveId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: branch
+          schema:
+            type: string
+        - in: query
+          name: cgpaMin
+          schema:
+            type: number
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/ApplicationStatus"
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Candidate table data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateListResponse"
+  /recruiter/candidates/{candidateId}:
+    get:
+      tags: [Recruiter]
+      summary: Get recruiter candidate profile for drawer or full page
+      parameters:
+        - in: path
+          name: candidateId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Candidate profile payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateProfile"
+  /recruiter/applications/{applicationId}/shortlist:
+    post:
+      tags: [Recruiter]
+      summary: Shortlist a candidate within a drive
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Candidate shortlisted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationActionResponse"
+  /recruiter/applications/{applicationId}/reject:
+    post:
+      tags: [Recruiter]
+      summary: Reject a candidate within a drive
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Candidate rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationActionResponse"
+  /recruiter/applications/{applicationId}/schedule-final-interview:
+    post:
+      tags: [Recruiter]
+      summary: Schedule final interview and bypass intermediate rounds
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Final interview scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationActionResponse"
+  /recruiter/interviews:
+    get:
+      tags: [Recruiter]
+      summary: List scheduled interviews for recruiter workflows
+      parameters:
+        - in: query
+          name: driveId
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Interview list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecruiterInterviewListResponse"
+    post:
+      tags: [Recruiter]
+      summary: Create or schedule an interview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecruiterInterviewCreateRequest"
+      responses:
+        "201":
+          description: Interview scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecruiterInterview"
+  /recruiter/communications/broadcast:
+    post:
+      tags: [Recruiter]
+      summary: Broadcast a drive-scoped message to applicants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BroadcastRequest"
+      responses:
+        "201":
+          description: Broadcast created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BroadcastResponse"
+  /recruiter/communications:
+    get:
+      tags: [Recruiter]
+      summary: List recruiter broadcast history for a drive
+      parameters:
+        - in: query
+          name: driveId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Broadcast history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        driveId:
+                          type: string
+                        audience:
+                          type: string
+                        message:
+                          type: string
+                        sentAt:
+                          type: string
+                          format: date-time
+  /recruiter/reports/exports:
+    get:
+      tags: [Recruiter]
+      summary: List recruiter export and report options
+      parameters:
+        - in: query
+          name: driveId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Export options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportListResponse"
+  /tpo/dashboard:
+    get:
+      tags: [TPO]
+      summary: Get the TPO dashboard payload
+      responses:
+        "200":
+          description: TPO dashboard payload
+          content:
+            application/json:
+              schema:
+                type: object
+  /tpo/announcements:
+    post:
+      tags: [TPO]
+      summary: Create a TPO announcement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [audience, message]
+              properties:
+                audience:
+                  type: string
+                message:
+                  type: string
+      responses:
+        "201":
+          description: Announcement created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    type: object
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Get the admin dashboard payload
+      responses:
+        "200":
+          description: Admin dashboard payload
+          content:
+            application/json:
+              schema:
+                type: object

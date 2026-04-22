@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: orbiton
+      POSTGRES_USER: orbiton
+      POSTGRES_PASSWORD: orbiton
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  api:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile.api
+    depends_on:
+      - postgres
+      - mongo
+    environment:
+      PORT: 5000
+      POSTGRES_URL: postgres://orbiton:orbiton@postgres:5432/orbiton
+      MONGO_URL: mongodb://mongo:27017/orbiton
+    ports:
+      - "5000:5000"
+
+  web:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile.web
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres-data:
+  mongo-data:

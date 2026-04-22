@@ -1,0 +1,16 @@
+{
+  "name": "orbiton-full",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @orbiton/web",
+    "dev:api": "npm run dev --workspace @orbiton/api",
+    "dev:ml": "python apps/ml-service/app.py",
+    "test": "npm run test --workspaces --if-present"
+  }
+}
+
