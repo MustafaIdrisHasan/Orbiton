@@ -7,10 +7,20 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:stack": "concurrently -k -n api,web -c cyan,green \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:stack:pair": "concurrently -k -n api,web,web2 -c cyan,green,magenta \"npm run dev:api\" \"npm run dev:web:student\" \"npm run dev:web:tpo\"",
     "dev:web": "npm run dev --workspace @orbiton/web",
+    "dev:web:student": "npm run dev:student --workspace @orbiton/web",
+    "dev:web:tpo": "npm run dev:tpo --workspace @orbiton/web",
+    "dev:web:alt": "npm run dev:alt --workspace @orbiton/web",
     "dev:api": "npm run dev --workspace @orbiton/api",
     "dev:ml": "python apps/ml-service/app.py",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "docker:postgres-up": "docker compose -f infrastructure/docker/docker-compose.yml up -d postgres",
+    "docker:postgres-down": "docker compose -f infrastructure/docker/docker-compose.yml stop postgres",
+    "docker:db-bootstrap": "node scripts/docker-db-bootstrap.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
-

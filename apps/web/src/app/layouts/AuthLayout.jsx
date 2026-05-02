@@ -3,14 +3,15 @@ import { Outlet } from "react-router-dom";
 export function AuthLayout() {
   return (
     <div className="auth-shell">
-      <section className="hero-card">
-        <p className="eyebrow">Orbiton</p>
-        <h1>Placement workflows built for clarity</h1>
-        <p className="muted">
-          Start with role-aware access, modular CRUD flows, and a clean path into analytics and
-          intelligence.
-        </p>
-      </section>
+      <div className="auth-bg-geo" aria-hidden="true">
+        {Array.from({ length: 12 }, (_, index) => (
+          <span key={index} className="auth-bg-square" />
+        ))}
+      </div>
+      <header className="auth-branding">
+        <p className="eyebrow auth-brand-eyebrow">Orbiton</p>
+        <h1 className="auth-brand-title">Placement workflows built for clarity</h1>
+      </header>
       <section className="auth-card">
         <Outlet />
       </section>

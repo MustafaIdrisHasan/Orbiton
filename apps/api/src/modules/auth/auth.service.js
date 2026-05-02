@@ -54,7 +54,8 @@ function createAuthService({
       const token = jwtLib.sign(
         {
           userId: user.id,
-          role
+          role,
+          roles
         },
         jwtSecret,
         { expiresIn: "1d" }

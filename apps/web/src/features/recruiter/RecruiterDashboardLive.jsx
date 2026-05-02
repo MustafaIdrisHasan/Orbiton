@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { recruiterDashboardData, recruiterStatusMeta } from "./recruiterData";
 import {
   fetchRecruiterBroadcasts,
@@ -248,6 +248,7 @@ function FloatingCommunicationPanel({
 }
 
 export function RecruiterDashboardLive() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const fallbackDrive = recruiterDashboardData.drives[0];
   const [driveOptions, setDriveOptions] = useState(
     recruiterDashboardData.drives.map((drive) => ({
@@ -287,6 +288,16 @@ export function RecruiterDashboardLive() {
   const [candidates, setCandidates] = useState(fallbackDrive.candidates);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+
+  const driveIdFromUrl = searchParams.get("driveId");
+  useEffect(() => {
+    if (!driveIdFromUrl) {
+      return;
+    }
+    if (driveOptions.some((d) => d.id === driveIdFromUrl)) {
+      setSelectedDriveId(driveIdFromUrl);
+    }
+  }, [driveIdFromUrl, driveOptions]);
 
   const activeDrive = dashboard?.activeDrive || fallbackDrive;
   const funnelCounts = dashboard?.funnel?.length ? dashboard.funnel : buildFunnelCounts(candidates);
@@ -506,7 +517,18 @@ export function RecruiterDashboardLive() {
           <div className="recruiter-hero-actions">
             <label className="settings-field recruiter-drive-select">
               Active Drive
-              <select value={selectedDriveId} onChange={(event) => setSelectedDriveId(event.target.value)}>
+              <select
+                value={selectedDriveId}
+                onChange={(event) => {
+                  const v = event.target.value;
+                  setSelectedDriveId(v);
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set("driveId", v);
+                    return next;
+                  });
+                }}
+              >
                 {driveOptions.map((drive) => (
                   <option key={drive.id} value={drive.id}>
                     {drive.title}
@@ -520,7 +542,7 @@ export function RecruiterDashboardLive() {
           </div>
         </div>
 
-        <div className="recruiter-hero-grid">
+        <div className="recruiter-hero-bento">
           <section className="dashboard-card funnel-card">
             <div className="section-heading">
               <div>
@@ -554,7 +576,7 @@ export function RecruiterDashboardLive() {
             </div>
           </section>
 
-          <section className="recruiter-side-stack">
+          <div className="recruiter-insights-row">
             <article className="dashboard-card">
               <div className="section-heading">
                 <h3>Round Deadlines</h3>
@@ -599,7 +621,7 @@ export function RecruiterDashboardLive() {
               </div>
               <p className="card-note recruiter-note">{activeDrive.notes || "Live recruiter dashboard data is active."}</p>
             </article>
-          </section>
+          </div>
         </div>
       </section>
 

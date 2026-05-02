@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Orbiton API
-  version: 1.1.0
+  version: 1.2.0
   description: Placement management REST API for Orbiton, including recruiter dashboard and workflow contracts.
 servers:
   - url: /api/v1
@@ -10,6 +10,7 @@ tags:
   - name: Users
   - name: Students
   - name: Drives
+  - name: Companies
   - name: Applications
   - name: Rounds
   - name: Offers
@@ -17,6 +18,11 @@ tags:
   - name: Recruiter
   - name: TPO
   - name: Admin
+  - name: Resumes
+  - name: Matching
+  - name: Predictions
+  - name: Intelligence
+  - name: Internal
 components:
   securitySchemes:
     bearerAuth:
@@ -72,6 +78,99 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Role"
+    IntelligenceStatus:
+      type: object
+      description: Which optional intelligence backends are configured (URLs are not exposed)
+      properties:
+        service:
+          type: string
+          example: orbiton-ml-service
+        status:
+          type: string
+          example: planned
+        predictionServiceUrl:
+          type: boolean
+          description: True when PREDICTION_SERVICE_URL is set (FastAPI prediction_service)
+        matchingServiceUrl:
+          type: boolean
+          description: True when MATCHING_SERVICE_URL is set
+        resumeServiceUrl:
+          type: boolean
+          description: True when RESUME_SERVICE_URL is set
+        pgvectorMatching:
+          type: boolean
+          description: True when USE_PGVECTOR_MATCHING is enabled (requires pgvector + embeddings)
+        legacyMlServiceUrl:
+          type: string
+          description: Configured ML_SERVICE_URL for legacy Flask baseline
+    PlacementPredictionRequest:
+      type: object
+      required: [studentId]
+      properties:
+        studentId:
+          type: string
+        resumeScore:
+          type: number
+          nullable: true
+        cgpa:
+          type: number
+          nullable: true
+        hasInternship:
+          type: boolean
+        projectCount:
+          type: integer
+        backlogs:
+          type: integer
+        skillCount:
+          type: integer
+          description: Optional override; otherwise derived from stored resume profile
+        department:
+          type: string
+        year:
+          type: integer
+        hackathonCount:
+          type: integer
+        certificationCount:
+          type: integer
+        communicationScore:
+          type: number
+          nullable: true
+    PlacementPredictionResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+        studentId:
+          type: string
+        payload:
+          type: object
+          description: Feature payload sent to or derived for the model
+        probability:
+          type: number
+        riskBand:
+          type: string
+          enum: [low, medium, high]
+        modelVersion:
+          type: string
+        contributions:
+          description: Feature contributions (object for legacy Flask; array of {feature, contribution} for FastAPI)
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: array
+              items:
+                type: object
+        features:
+          type: object
+          additionalProperties: true
+        preview:
+          type: boolean
+          description: True when model is baseline/public-data only (FastAPI path)
+        rationale:
+          type: string
+        backend:
+          type: string
+          description: prediction_service | ml_service_flask
     SessionResponse:
       type: object
       properties:
@@ -113,6 +212,173 @@ components:
           type: boolean
         candidateCount:
           type: integer
+        companyName:
+          type: string
+        packageLpa:
+          type: number
+          nullable: true
+        employmentType:
+          type: string
+          enum: [FULL_TIME, INTERNSHIP]
+        eligibleDepartments:
+          type: array
+          items:
+            type: string
+        minCgpa:
+          type: number
+          nullable: true
+        maxBacklogs:
+          type: integer
+          nullable: true
+        eligibleYears:
+          type: array
+          items:
+            type: string
+        requiredSkills:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+    DriveLifecycleStatus:
+      type: string
+      enum: [DRAFT, PUBLISHED, CLOSED, ACTIVE]
+      description: ACTIVE is accepted as legacy and normalized to PUBLISHED in responses where applicable
+    RecruiterDriveListItem:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        status: { $ref: "#/components/schemas/DriveLifecycleStatus" }
+        applicants_count: { type: integer }
+        shortlisted_count: { type: integer }
+        selected_count: { type: integer }
+        deadline: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time, nullable: true }
+        packageLpa: { type: number, nullable: true }
+        employmentType: { type: string }
+        eligibleDepartments:
+          type: array
+          items: { type: string }
+        rounds_count: { type: integer }
+        description: { type: string }
+        openings: { type: integer }
+        location: { type: string }
+        isFeatured: { type: boolean }
+        applicationDeadline: { type: string, format: date-time, nullable: true }
+        candidateCount: { type: integer }
+        companyName: { type: string }
+    DriveStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/DriveLifecycleStatus"
+    DriveDetail:
+      allOf:
+        - $ref: "#/components/schemas/DriveSummary"
+        - type: object
+          properties:
+            roundDeadlines:
+              type: array
+              items:
+                $ref: "#/components/schemas/DeadlineItem"
+            recruiter:
+              type: object
+              properties:
+                companyName:
+                  type: string
+                designation:
+                  type: string
+    CompanyHiringStatus:
+      type: string
+      enum: [ACTIVE, PAST, INACTIVE]
+    CompanySummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        industry:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        logoUrl:
+          type: string
+          nullable: true
+        highestPackage:
+          type: number
+          nullable: true
+        avgPackage:
+          type: number
+          nullable: true
+        totalDrives:
+          type: integer
+        activeDrivesCount:
+          type: integer
+        departmentsHired:
+          type: array
+          items:
+            type: string
+        rolesOffered:
+          type: array
+          items:
+            type: string
+        hiringStatus:
+          $ref: "#/components/schemas/CompanyHiringStatus"
+        lastActivityAt:
+          type: string
+          format: date-time
+          nullable: true
+        selectionRatio:
+          type: number
+          nullable: true
+    CompanyDriveRef:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        applicationDeadline:
+          type: string
+          format: date-time
+          nullable: true
+        packageLpa:
+          type: number
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        openings:
+          type: integer
+          nullable: true
+    CompanyDetail:
+      allOf:
+        - $ref: "#/components/schemas/CompanySummary"
+        - type: object
+          properties:
+            designation:
+              type: string
+              nullable: true
+            activeDrives:
+              type: array
+              items:
+                $ref: "#/components/schemas/CompanyDriveRef"
+            pastDrives:
+              type: array
+              items:
+                $ref: "#/components/schemas/CompanyDriveRef"
     RecruiterDriveOption:
       type: object
       properties:
@@ -420,13 +686,50 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExportOption"
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [APPLICATION, SHORTLIST, ROUND, OFFER, DRIVE, ANNOUNCEMENT]
+        title:
+          type: string
+        message:
+          type: string
+        entityId:
+          type: string
+          nullable: true
+        driveId:
+          type: string
+          nullable: true
+        audience:
+          type: string
+          nullable: true
+        source:
+          type: string
+          enum: [STUDENT, RECRUITER, INSTITUTION]
+          nullable: true
+        isRead:
+          type: boolean
+        sentAt:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+          description: Alias of sentAt when present
     NotificationListResponse:
       type: object
       properties:
         items:
           type: array
           items:
-            type: object
+            $ref: "#/components/schemas/Notification"
         unreadCount:
           type: integer
 security:
@@ -490,7 +793,14 @@ paths:
   /drives:
     get:
       tags: [Drives]
-      summary: List placement drives
+      summary: List placement drives (PUBLISHED only) or all drives for the recruiter
+      parameters:
+        - in: query
+          name: created_by
+          schema:
+            type: string
+            enum: [me]
+          description: If me, return recruiter-owned drives with metrics (RECRUITER only)
       responses:
         "200":
           description: Drive list
@@ -504,7 +814,11 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: "#/components/schemas/DriveSummary"
+                      oneOf:
+                        - $ref: "#/components/schemas/DriveSummary"
+                        - $ref: "#/components/schemas/RecruiterDriveListItem"
+        "403":
+          description: Forbidden (created_by=me without recruiter role)
     post:
       tags: [Drives]
       summary: Create a placement drive
@@ -515,6 +829,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DriveSummary"
+  /drives/{id}:
+    get:
+      tags: [Drives]
+      summary: Get drive detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Drive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriveDetail"
+        "404": { description: Not found }
+    patch:
+      tags: [Drives]
+      summary: Update drive (partial)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecruiterDriveListItem" }
+    delete:
+      tags: [Drives]
+      summary: Delete drive (DRAFT only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        "403": { description: Not a draft }
+        "404": { description: Not found }
+  /drives/{id}/status:
+    patch:
+      tags: [Drives]
+      summary: Change drive lifecycle status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DriveStatusUpdate" }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecruiterDriveListItem" }
+        "400": { description: Invalid transition or status }
+        "403": { description: Forbidden }
+        "404": { description: Not found }
+  /companies:
+    get:
+      tags: [Companies]
+      summary: List companies derived from recruiters and drives
+      responses:
+        "200":
+          description: Company directory list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resource:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CompanySummary"
+  /companies/{id}:
+    get:
+      tags: [Companies]
+      summary: Get company with active and past drives
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Company detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyDetail"
+        "404":
+          description: Company not found
   /applications/apply/{driveId}:
     post:
       tags: [Applications]
@@ -553,6 +972,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotificationListResponse"
+  /notifications/read-all:
+    post:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Count of notifications updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: integer
+                  message:
+                    type: string
+  /notifications/{id}/read:
+    post:
+      tags: [Notifications]
+      summary: Mark a notification as read
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Acknowledgement
+        "404":
+          description: Notification not found
+    patch:
+      tags: [Notifications]
+      summary: Mark a notification as read (alias)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Acknowledgement
+        "404":
+          description: Notification not found
   /recruiter/dashboard:
     get:
       tags: [Recruiter]
@@ -835,3 +1299,269 @@ paths:
             application/json:
               schema:
                 type: object
+  /students/profile/me/full:
+    get:
+      tags: [Students]
+      summary: Get the authenticated student's extended profile (skills, projects, experience, education, latest resume score)
+      x-internal: true
+      x-feature-flag: ENABLE_RESUME_SCORING
+      responses:
+        "200":
+          description: Extended student profile
+        "404":
+          description: Feature flag disabled
+  /resumes/me/profile:
+    put:
+      tags: [Resumes]
+      summary: Replace the authenticated student's structured resume profile
+      x-internal: true
+      x-feature-flag: ENABLE_RESUME_SCORING
+      responses:
+        "200":
+          description: Stored resume profile
+        "404":
+          description: Feature flag disabled
+  /resumes/{id}/analyze:
+    post:
+      tags: [Resumes]
+      summary: Compute or refresh the weighted resume score for a resume
+      x-internal: true
+      x-feature-flag: ENABLE_RESUME_SCORING
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Resume score breakdown with modelVersion and computedAt
+        "404":
+          description: Feature flag disabled or resume not found
+  /resumes/{id}/score:
+    get:
+      tags: [Resumes]
+      summary: Get the latest resume score and explanation
+      x-internal: true
+      x-feature-flag: ENABLE_RESUME_SCORING
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Latest resume score
+        "404":
+          description: Feature flag disabled or score not found
+  /resumes/upload:
+    post:
+      tags: [Resumes]
+      summary: Upload a PDF resume; extract text, persist the upload, and return a score
+      x-internal: true
+      x-feature-flag: ENABLE_RESUME_SCORING
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Upload persisted, extracted profile and score returned
+        "400":
+          description: Missing file or invalid multipart body
+        "404":
+          description: Feature flag disabled
+        "413":
+          description: File exceeds 5 MB limit
+  /matching/drives:
+    get:
+      tags: [Matching]
+      summary: Rank PUBLISHED drives by profile–JD match (legacy in-process cosine, or USE_PGVECTOR_MATCHING + matching_service when configured)
+      x-internal: true
+      x-feature-flag: ENABLE_MATCHING
+      responses:
+        "200":
+          description: Ranked drives with similarity and topContributingDimensions; pgvector mode may include weightsUsed, note, compositeScore, booleanPass
+        "404":
+          description: Feature flag disabled
+  /matching/students:
+    get:
+      tags: [Matching]
+      summary: Rank candidates by profile–JD match (legacy mock-data cosine, or USE_PGVECTOR_MATCHING + matching_service when configured)
+      x-internal: true
+      x-feature-flag: ENABLE_MATCHING
+      parameters:
+        - in: query
+          name: driveId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Ranked candidates with similarity scores
+        "404":
+          description: Feature flag disabled or drive not found
+  /predictions/placement:
+    post:
+      tags: [Predictions]
+      summary: Placement readiness probability (prefers PREDICTION_SERVICE_URL FastAPI when set; else ML_SERVICE_URL Flask logistic baseline)
+      x-internal: true
+      x-feature-flag: ENABLE_PREDICTION
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlacementPredictionRequest"
+      responses:
+        "200":
+          description: Probability, risk band, optional preview/rationale when using FastAPI
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlacementPredictionResponse"
+        "400":
+          description: studentId missing
+        "403":
+          description: Role not TPO or RECRUITER
+        "404":
+          description: Feature flag disabled
+        "503":
+          description: Intelligence service unavailable; widget should hide
+  /intelligence/status:
+    get:
+      tags: [Intelligence]
+      summary: Report configured intelligence backends (no authentication; no secrets exposed)
+      responses:
+        "200":
+          description: Flags only — which service URLs are non-empty and whether pgvector matching is enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntelligenceStatus"
+  /internal/resumes/parse-callback:
+    post:
+      tags: [Internal]
+      summary: Webhook from resume_service when async parse completes (HMAC-signed JSON body)
+      description: |
+        Headers required: `X-Orbiton-Timestamp` (unix seconds), `X-Orbiton-Signature` (`sha256=<hex>`).
+        Body is raw JSON verified before parse. Configure `INTERNAL_HMAC_SECRET` on Node and Python.
+      security: []
+      parameters:
+        - in: header
+          name: X-Orbiton-Timestamp
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Orbiton-Signature
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resume_id, status, parse_version, model_version]
+              properties:
+                resume_id: { type: string, format: uuid }
+                job_id: { type: string }
+                status:
+                  type: string
+                  enum: [queued, parsing, succeeded, failed]
+                json_resume: { type: object, nullable: true }
+                raw_text_chars: { type: integer, nullable: true }
+                parse_version: { type: string }
+                model_version: { type: string }
+                failure_reason: { type: string, nullable: true }
+                duration_ms: { type: integer, nullable: true }
+      responses:
+        "204":
+          description: Row persisted
+        "400":
+          description: Invalid body or status
+        "401":
+          description: Missing or invalid HMAC
+        "500":
+          description: INTERNAL_HMAC_SECRET not set or persistence error
+  /internal/embeddings/student/{id}:
+    post:
+      tags: [Internal]
+      summary: Upsert student profile embedding (HMAC-signed)
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Orbiton-Timestamp
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Orbiton-Signature
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [embedding, model_version]
+              properties:
+                embedding:
+                  type: array
+                  items: { type: number }
+                model_version: { type: string }
+      responses:
+        "204":
+          description: Updated
+        "400":
+          description: Missing fields
+        "401":
+          description: Invalid HMAC
+  /internal/embeddings/drive/{id}:
+    post:
+      tags: [Internal]
+      summary: Upsert drive JD embedding (HMAC-signed)
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Orbiton-Timestamp
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Orbiton-Signature
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [embedding, model_version]
+              properties:
+                embedding:
+                  type: array
+                  items: { type: number }
+                model_version: { type: string }
+      responses:
+        "204":
+          description: Updated
+        "400":
+          description: Missing fields
+        "401":
+          description: Invalid HMAC

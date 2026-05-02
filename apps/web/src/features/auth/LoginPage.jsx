@@ -2,9 +2,18 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/providers/AuthProvider";
 
+const devPortal = import.meta.env.VITE_DEV_PORTAL;
+
+function devPortalLabel(portal) {
+  if (portal === "student") return "Student (local dev)";
+  if (portal === "tpo") return "TPO (local dev)";
+  return null;
+}
+
 export function LoginPage() {
   const navigate = useNavigate();
   const { login, user, isLoading, authError, clearAuthError } = useAuth();
+  const portalHint = devPortalLabel(devPortal);
   const [form, setForm] = useState({
     email: "",
     password: ""
@@ -41,6 +50,7 @@ export function LoginPage() {
       <div>
         <p className="eyebrow">Authentication</p>
         <h2>Sign in to Orbiton</h2>
+        {portalHint ? <p className="muted">{portalHint}</p> : null}
       </div>
 
       <label className="settings-field">

@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
 import { AuthLayout } from "../layouts/AuthLayout";
 import { ProtectedRoute, RoleHomeRedirect } from "../../shared/ui/RouteGuards";
@@ -7,7 +7,9 @@ import { DashboardPage } from "../../features/dashboard/DashboardPage";
 import { ProfilePage } from "../../features/profile/ProfilePage";
 import { NotificationsPage } from "../../features/notifications/NotificationsPage";
 import { DrivesPage } from "../../features/drives/DrivesPage";
+import { DriveDetailsPage } from "../../features/drives/DriveDetailsPage";
 import { CompaniesPage } from "../../features/companies/CompaniesPage";
+import { CompanyDetailsPage } from "../../features/companies/CompanyDetailsPage";
 import { ApplicationsPage } from "../../features/applications/ApplicationsPage";
 import { RoundsPage } from "../../features/rounds/RoundsPage";
 import { OffersPage } from "../../features/offers/OffersPage";
@@ -18,7 +20,9 @@ import { CreateDrivePage } from "../../features/drives/CreateDrivePage";
 import { MyDrivesPage } from "../../features/drives/MyDrivesPage";
 import { CheckDrivesPage } from "../../features/drives/CheckDrivesPage";
 import { MenteesPage } from "../../features/faculty/MenteesPage";
-import { StudentPortalPage } from "../../features/student/StudentPortalPage";
+import { StudentDashboardPage } from "../../features/student/StudentDashboardPage";
+import { StudentDriveDetailsPage } from "../../features/student/StudentDriveDetailsPage";
+import { StudentApplicationDetailsPage } from "../../features/student/StudentApplicationDetailsPage";
 import { RecruiterPortalPage } from "../../features/recruiter/RecruiterPortalPage";
 import { RecruiterInterviewsPageLive as RecruiterInterviewsPage } from "../../features/recruiter/RecruiterInterviewsPageLive";
 import { RecruiterCommunicationsPageLive as RecruiterCommunicationsPage } from "../../features/recruiter/RecruiterCommunicationsPageLive";
@@ -45,6 +49,7 @@ import { TpoPlacementsPage } from "../../features/tpo/TpoPlacementsPage";
 import { TpoAnalyticsPage } from "../../features/tpo/TpoAnalyticsPage";
 import { TpoReportsPage } from "../../features/tpo/TpoReportsPage";
 import { TpoAnnouncementsPage } from "../../features/tpo/TpoAnnouncementsPage";
+import { TpoApplicationProfilePage } from "../../features/tpo/TpoApplicationProfilePage";
 import { NotFoundPage } from "../../pages/NotFoundPage";
 import { UnauthorizedPage } from "../../pages/UnauthorizedPage";
 import { ErrorPage } from "../../pages/ErrorPage";
@@ -75,23 +80,44 @@ export const router = createBrowserRouter([
       { path: "notifications", element: <NotificationsPage /> },
       { path: "drives", element: <DrivesPage /> },
       { path: "companies", element: <CompaniesPage /> },
+      { path: "companies/:id", element: <CompanyDetailsPage /> },
       { path: "applications", element: <ApplicationsPage /> },
       { path: "rounds", element: <RoundsPage /> },
       { path: "offers", element: <OffersPage /> },
       { path: "resumes", element: <ResumesPage /> },
       { path: "analytics", element: <AnalyticsPage /> },
       { path: "analytics/department", element: <DepartmentAnalyticsPage /> },
-      { path: "drives/create", element: <CreateDrivePage /> },
-      { path: "drives/mine", element: <MyDrivesPage /> },
+      {
+        path: "drives/create",
+        element: (
+          <RequireRole roles={["RECRUITER", "TPO"]}>
+            <CreateDrivePage />
+          </RequireRole>
+        )
+      },
+      {
+        path: "drives/mine",
+        element: (
+          <RequireRole roles={["RECRUITER", "TPO"]}>
+            <MyDrivesPage />
+          </RequireRole>
+        )
+      },
       { path: "drives/review", element: <CheckDrivesPage /> },
+      { path: "drives/:id", element: <DriveDetailsPage /> },
       { path: "mentees", element: <MenteesPage /> },
       {
         path: "student",
         element: (
           <RequireRole roles={["STUDENT"]}>
-            <StudentPortalPage />
+            <Outlet />
           </RequireRole>
-        )
+        ),
+        children: [
+          { index: true, element: <StudentDashboardPage /> },
+          { path: "drives/:id", element: <StudentDriveDetailsPage /> },
+          { path: "applications/:id", element: <StudentApplicationDetailsPage /> }
+        ]
       },
       {
         path: "recruiter",
@@ -258,6 +284,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireRole roles={["TPO"]}>
             <TpoApplicationsPage />
+          </RequireRole>
+        )
+      },
+      {
+        path: "tpo/applications/:applicationId/profile",
+        element: (
+          <RequireRole roles={["TPO"]}>
+            <TpoApplicationProfilePage />
           </RequireRole>
         )
       },

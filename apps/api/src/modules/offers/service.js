@@ -7,7 +7,10 @@ function listOffers() {
     driveId: candidate.driveId,
     driveTitle: candidate.driveTitle,
     candidateName: candidate.name,
-    status: candidate.status
+    email: candidate.email,
+    status: candidate.status,
+    packageLpa: candidate.offerPackageLpa ?? null,
+    joiningDate: candidate.offerJoiningDate ?? null
   }));
 }
 

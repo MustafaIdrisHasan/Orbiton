@@ -1,21 +1,24 @@
 const service = require("./service");
 
-function getDashboard(_req, res) {
-  res.json(service.getDashboard());
+async function getDashboard(_req, res, next) {
+  try { res.json(await service.getDashboard()); } catch (err) { next(err); }
 }
 
-function listUsers(_req, res) {
-  res.json(service.listUsers());
+async function listUsers(_req, res, next) {
+  try { res.json(await service.listUsers()); } catch (err) { next(err); }
 }
 
-function getUser(req, res) {
-  const user = service.getUser(req.params.id);
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
+async function getUser(req, res, next) {
+  try {
+    const user = await service.getUser(req.params.id);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    res.json(user);
+  } catch (err) {
+    next(err);
   }
-
-  res.json(user);
 }
 
 function listRoles(_req, res) {
@@ -26,8 +29,16 @@ function listLogs(_req, res) {
   res.json(service.listLogs());
 }
 
-function listDrives(_req, res) {
-  res.json(service.listDrives());
+async function listDrives(req, res, next) {
+  try {
+    const filters = {
+      createdByRole: req.query.created_by_role || null,
+      createdByUserId: req.query.created_by_user_id || null,
+    };
+    res.json(await service.listDrives(filters));
+  } catch (err) {
+    next(err);
+  }
 }
 
 function listReports(_req, res) {
@@ -41,5 +52,5 @@ module.exports = {
   listRoles,
   listLogs,
   listDrives,
-  listReports
+  listReports,
 };

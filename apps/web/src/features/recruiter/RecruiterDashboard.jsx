@@ -367,7 +367,7 @@ export function RecruiterDashboard() {
           </div>
         </div>
 
-        <div className="recruiter-hero-grid">
+        <div className="recruiter-hero-bento">
           <section className="dashboard-card funnel-card">
             <div className="section-heading">
               <div>
@@ -401,7 +401,7 @@ export function RecruiterDashboard() {
             </div>
           </section>
 
-          <section className="recruiter-side-stack">
+          <div className="recruiter-insights-row">
             <article className="dashboard-card">
               <div className="section-heading">
                 <h3>Round Deadlines</h3>
@@ -446,7 +446,7 @@ export function RecruiterDashboard() {
               </div>
               <p className="card-note recruiter-note">{activeDrive.notes}</p>
             </article>
-          </section>
+          </div>
         </div>
       </section>
 

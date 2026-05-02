@@ -1,0 +1,112 @@
+# Orbiton — Intelligence layer compose overlay
+# Spin up alongside your existing compose:
+#   docker compose -f docker-compose.yml -f docker-compose.intelligence.yml up
+#
+# Adds:
+#   - Postgres replaced with pgvector-enabled image
+#   - Redis (queue broker for async resume parsing + embedding refresh)
+#   - resume_service (FastAPI + Celery worker)
+#   - matching_service (FastAPI)
+#   - prediction_service (FastAPI)
+
+version: "3.9"
+
+x-py-base: &py-base
+  build:
+    context: ../../apps/intelligence
+    dockerfile: Dockerfile.base
+  environment:
+    PG_DSN: postgres://orbiton:orbiton@postgres:5432/orbiton
+    PG_RO_DSN: postgres://orbiton_ro:orbiton_ro@postgres:5432/orbiton
+    REDIS_URL: redis://redis:6379/0
+    NODE_API_BASE_URL: http://api:5000
+    INTERNAL_HMAC_SECRET: ${INTERNAL_HMAC_SECRET:-change-me-in-prod}
+    EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-sentence_transformers}
+    EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-mpnet-base-v2}
+    EMBEDDING_DIM: ${EMBEDDING_DIM:-768}
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    PYTHONUNBUFFERED: "1"
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: orbiton-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orbiton
+      POSTGRES_PASSWORD: orbiton
+      POSTGRES_DB: orbiton
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../db/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orbiton -d orbiton"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: orbiton-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  resume_service:
+    <<: *py-base
+    container_name: orbiton-resume-service
+    build:
+      context: ../../apps/intelligence
+      dockerfile: resume_service/Dockerfile
+    command: uvicorn resume_service.main:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+
+  resume_worker:
+    <<: *py-base
+    container_name: orbiton-resume-worker
+    build:
+      context: ../../apps/intelligence
+      dockerfile: resume_service/Dockerfile
+    command: celery -A resume_service.workers.celery_app.celery_app worker --loglevel=INFO --concurrency=2
+
+  matching_service:
+    <<: *py-base
+    container_name: orbiton-matching-service
+    build:
+      context: ../../apps/intelligence
+      dockerfile: matching_service/Dockerfile
+    command: uvicorn matching_service.main:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+
+  prediction_service:
+    <<: *py-base
+    container_name: orbiton-prediction-service
+    build:
+      context: ../../apps/intelligence
+      dockerfile: prediction_service/Dockerfile
+    command: uvicorn prediction_service.main:app --host 0.0.0.0 --port 8003
+    ports:
+      - "8003:8003"
+    volumes:
+      - ../../apps/intelligence/prediction_service/models:/app/prediction_service/models
+
+volumes:
+  pgdata:
+  redisdata:

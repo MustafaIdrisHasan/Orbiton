@@ -29,7 +29,7 @@ test("login succeeds with valid credentials", async () => {
     },
     jwtLib: {
       sign(payload, secret, options) {
-        assert.deepEqual(payload, { userId: "user-1", role: "ADMIN" });
+        assert.deepEqual(payload, { userId: "user-1", role: "ADMIN", roles: ["ADMIN"] });
         assert.equal(secret, "test-secret");
         assert.equal(options.expiresIn, "1d");
         return "signed-token";

@@ -9,6 +9,11 @@ export function TpoDrivesPage() {
           <p className="eyebrow">TPO Workspace</p>
           <h2>All Drives</h2>
           <p className="muted">Institute-wide drive monitoring with approval, override, and recruiter contact actions.</p>
+          <p className="muted" style={{ marginTop: "0.75rem" }}>
+            To add a drive students can open on <Link to="/drives">Placements</Link>, use{" "}
+            <Link to="/drives/create">Create drive</Link> (publish it) or{" "}
+            <Link to="/drives/mine">Manage drives</Link>.
+          </p>
         </div>
       </header>
 

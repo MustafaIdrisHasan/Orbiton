@@ -19,3 +19,6 @@ Orbiton is a placement management system scaffolded as a frontend-first monorepo
 3. Start PostgreSQL and MongoDB using the Docker Compose file in `infrastructure/docker`.
 4. Run `npm run dev:api` and `npm run dev:web`.
 
+## Documentation and handover
+
+For a full maintainer handover—repository map, how to run the stack, what is implemented versus placeholders, data and ML-service state, and the planned intelligence modules (resume scoring, job matching, placement prediction)—see [docs/HANDOVER.md](docs/HANDOVER.md). That file links to the [architecture overview](docs/architecture/overview.md), the [ML product spec](docs/ML_PRODUCT_SPEC.md), and the [roadmap](docs/ROADMAP.md) for the next development phase.

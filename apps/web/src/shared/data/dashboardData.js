@@ -1,8 +1,45 @@
+import { applicationStatusMeta } from "../student/applicationStatus";
+
 export const studentDashboardData = {
   summary: {
-    applicationsSubmitted: 12,
-    offersReceived: 2
+    eligibleDrives: 4,
+    applicationsSubmitted: 2,
+    offersReceived: 1
   },
+  profileResume: {
+    profileCompletionPercent: 68,
+    resumeUploaded: false,
+    resumeScore: null,
+    department: "CSE",
+    cgpa: 8.6,
+    skills: ["React", "Node.js", "SQL", "Python"]
+  },
+  notifications: [
+    {
+      id: "n1",
+      message: "You were shortlisted for Associate Software Engineer — Fyndr Labs.",
+      sentAt: "2026-04-16T10:00:00.000Z",
+      kind: "shortlist"
+    },
+    {
+      id: "n2",
+      message: "New drive: Platform Developer at Auric Systems closes in 48 hours.",
+      sentAt: "2026-04-15T14:20:00.000Z",
+      kind: "drive"
+    }
+  ],
+  offers: [
+    {
+      offerId: "offer-app-105",
+      applicationId: "app-105",
+      companyName: "Northstar AI",
+      roleTitle: "Associate Software Engineer",
+      packageLpa: 12.5,
+      joiningDate: "2026-07-15T00:00:00.000Z",
+      status: "OFFERED",
+      email: "student@orbiton"
+    }
+  ],
   featuredPlacements: [
     {
       id: "f1",
@@ -11,56 +48,100 @@ export const studentDashboardData = {
       package: "11.5 LPA",
       location: "Bengaluru",
       skills: ["Node.js", "React", "SQL"],
-      personalizedReason: "Strong fit based on your full-stack profile"
-    },
-    {
-      id: "f2",
-      company: "Auric Systems",
-      title: "Platform Developer",
-      package: "14 LPA",
-      location: "Hyderabad",
-      skills: ["APIs", "PostgreSQL", "Testing"],
-      personalizedReason: "Matches your backend and data skills"
-    },
-    {
-      id: "f3",
-      company: "Northstar AI",
-      title: "Applied ML Engineer",
-      package: "16 LPA",
-      location: "Remote",
-      skills: ["Python", "scikit-learn", "Analytics"],
-      personalizedReason: "Recommended from your AI interest track"
+      personalizedReason: "Closing soon — high priority"
     }
   ],
   applications: [
-    { id: "a1", company: "Fyndr Labs", role: "Associate Software Engineer", status: "IN_PROGRESS" },
-    { id: "a2", company: "Vertex Mobility", role: "Graduate Engineer Trainee", status: "ACTION_NEEDED" },
-    { id: "a3", company: "Blue Prism Tech", role: "Systems Analyst", status: "REJECTED" },
-    { id: "a4", company: "Northstar AI", role: "Applied ML Engineer", status: "OFFER_RECEIVED" }
+    {
+      id: "app-102",
+      company: "Northstar AI",
+      role: "Associate Software Engineer",
+      status: "APPLIED",
+      driveId: "drive-northstar-ase"
+    },
+    {
+      id: "app-105",
+      company: "Northstar AI",
+      role: "Associate Software Engineer",
+      status: "OFFERED",
+      driveId: "drive-northstar-ase"
+    }
   ],
   rounds: [
     {
       id: "r1",
+      company: "Fyndr Labs",
+      role: "Associate Software Engineer",
       roundName: "Technical Interview",
-      dateTime: "18 Apr 2026, 10:30 AM",
+      dateTime: "2026-04-21T11:00:00.000Z",
       mode: "Online",
       locationOrLink: "meet.google.com/orbiton-tech"
     },
     {
       id: "r2",
+      company: "Vertex Mobility",
+      role: "Graduate Engineer Trainee",
       roundName: "Aptitude Assessment",
-      dateTime: "19 Apr 2026, 2:00 PM",
+      dateTime: "2026-04-19T14:00:00.000Z",
       mode: "Offline",
       locationOrLink: "Placement Hall A"
     }
   ],
   drives: [
-    { id: "d1", company: "Fyndr Labs", role: "Associate Software Engineer", department: "CSE", status: "Open", package: 11.5, date: "2026-04-18" },
-    { id: "d2", company: "Northstar AI", role: "Applied ML Engineer", department: "CSE", status: "Open", package: 16, date: "2026-04-20" },
-    { id: "d3", company: "Crest Analytics", role: "Data Analyst", department: "IT", status: "Closed", package: 8, date: "2026-04-13" },
-    { id: "d4", company: "Vertex Mobility", role: "Graduate Engineer Trainee", department: "EEE", status: "Open", package: 7.25, date: "2026-04-22" }
+    {
+      id: "d1",
+      company: "Fyndr Labs",
+      role: "Associate Software Engineer",
+      department: "CSE",
+      status: "Open",
+      package: 11.5,
+      date: "2026-04-18",
+      skills: ["Node.js", "React"],
+      minCgpa: 7.5
+    },
+    {
+      id: "d2",
+      company: "Northstar AI",
+      role: "Applied ML Engineer",
+      department: "CSE",
+      status: "Open",
+      package: 16,
+      date: "2026-04-20",
+      skills: ["Python", "ML"],
+      minCgpa: 8
+    },
+    {
+      id: "d3",
+      company: "Crest Analytics",
+      role: "Data Analyst",
+      department: "IT",
+      status: "Closed",
+      package: 8,
+      date: "2026-04-13",
+      skills: ["SQL", "Analytics"],
+      minCgpa: 7
+    },
+    {
+      id: "d4",
+      company: "Vertex Mobility",
+      role: "Graduate Engineer Trainee",
+      department: "EEE",
+      status: "Open",
+      package: 7.25,
+      date: "2026-04-22",
+      skills: ["Aptitude"],
+      minCgpa: 6.5
+    }
   ]
 };
+
+/** @deprecated use applicationStatusMeta */
+export const statusStyles = Object.fromEntries(
+  Object.entries(applicationStatusMeta).map(([key, v]) => [
+    key,
+    { label: v.label, className: v.cardClass.replace("application-card ", "").trim() }
+  ])
+);
 
 export const employerShowcase = [
   {
@@ -138,24 +219,5 @@ export const roleDashboardContent = {
       { title: "Participation trends", items: ["CSE strongest participation", "EEE applications growing this week"] },
       { title: "Offer queue", items: ["7 offers need placement confirmation", "3 accepted offers awaiting records"] }
     ]
-  }
-};
-
-export const statusStyles = {
-  IN_PROGRESS: {
-    label: "In Progress",
-    className: "status-progress"
-  },
-  ACTION_NEEDED: {
-    label: "Action Needed",
-    className: "status-action"
-  },
-  REJECTED: {
-    label: "Rejected",
-    className: "status-rejected"
-  },
-  OFFER_RECEIVED: {
-    label: "Offer Received",
-    className: "status-success"
   }
 };

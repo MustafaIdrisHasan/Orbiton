@@ -1,0 +1,6 @@
+# Trained model artifacts go here. Layout per version:
+#   models/current/        -> symlink or copy of the deployed version
+#   models/v1.0.0-baseline/
+#       rf.joblib
+#       metrics.json
+#       feature_order.json

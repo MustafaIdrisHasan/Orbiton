@@ -6,6 +6,8 @@ const router = express.Router();
 router.get("/dashboard", controller.getDashboard);
 router.get("/students", controller.listStudents);
 router.get("/students/:id", controller.getStudent);
+router.get("/students/:id/resumes", controller.getStudentResumes);
+router.get("/applications/:applicationId/profile", controller.getApplicationProfile);
 router.get("/drives", controller.listDrives);
 router.get("/drives/:id", controller.getDrive);
 router.get("/reports", controller.listReports);

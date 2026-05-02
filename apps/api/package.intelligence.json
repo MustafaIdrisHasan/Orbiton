@@ -1,0 +1,13 @@
+{
+  "_comment": "Snippet — merge these into apps/api/package.json. Kept as a separate file so the Cowork run does not silently overwrite your existing package.json.",
+  "dependencies": {
+    "typeorm": "^0.3.20",
+    "reflect-metadata": "^0.2.2",
+    "pg": "^8.11.5",
+    "bullmq": "^5.7.0",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

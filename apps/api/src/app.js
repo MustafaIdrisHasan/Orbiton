@@ -8,9 +8,20 @@ const { apiRouter } = require("./modules");
 
 const app = express();
 
+const allowedCorsOrigins = env.corsOrigins || [env.corsOrigin];
 app.use(
   cors({
-    origin: env.corsOrigin,
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (allowedCorsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
     credentials: true
   })
 );

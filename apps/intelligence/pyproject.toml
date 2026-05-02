@@ -1,0 +1,57 @@
+[project]
+name = "orbiton-intelligence"
+version = "0.1.0"
+description = "Orbiton Intelligence Layer — resume parsing, semantic matching, placement prediction"
+requires-python = ">=3.11"
+dependencies = [
+  # Web
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.4",
+  "httpx>=0.27",
+
+  # Data
+  "asyncpg>=0.29",
+  "redis>=5.0",
+  "numpy>=1.26",
+
+  # Resume parsing
+  "PyMuPDF>=1.24",            # imported as `fitz`
+  "spacy>=3.7,<3.8",
+  "spacy-transformers>=1.3",
+
+  # Matching / embeddings
+  "sentence-transformers>=3.0",
+  "scikit-learn>=1.5",
+
+  # Prediction
+  "joblib>=1.4",
+  "pandas>=2.2",
+  "shap>=0.46",
+
+  # Async / queue
+  "celery[redis]>=5.4",
+
+  # Observability
+  "structlog>=24.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  "pytest-httpx>=0.30",
+  "ruff>=0.5",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["shared*", "resume_service*", "matching_service*", "prediction_service*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

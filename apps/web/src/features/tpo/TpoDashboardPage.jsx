@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { tpoDashboardData } from "./tpoData";
+import { PlacementPredictionWidget } from "./PlacementPredictionWidget";
 
 function getMax(items) {
   return Math.max(...items.map((item) => item.count || item.value || item.percentage), 1);
@@ -157,6 +158,8 @@ export function TpoDashboardPage() {
           </table>
         </div>
       </section>
+
+      <PlacementPredictionWidget />
 
       <section className="dashboard-section">
         <div className="section-heading">

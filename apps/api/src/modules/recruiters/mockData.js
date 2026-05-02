@@ -3,19 +3,57 @@ const recruiterStore = {
     id: "recruiter-1",
     userId: "demo-user",
     companyName: "Northstar AI",
-    designation: "Senior Recruiter"
+    designation: "Senior Recruiter",
+    industry: "Technology",
+    description: "Enterprise applied intelligence, ML platforms, and high-scale backend services for global customers.",
+    website: "https://northstar.example",
+    logoUrl: null,
+    lastVisitAt: "2026-04-19T10:00:00.000Z"
   },
+  /** Additional recruiter orgs (may have zero linked drives) for company directory */
+  allRecruiters: [
+    {
+      id: "recruiter-1",
+      userId: "demo-user",
+      companyName: "Northstar AI",
+      designation: "Senior Recruiter",
+      industry: "Technology",
+      description: "Enterprise applied intelligence, ML platforms, and high-scale backend services for global customers.",
+      website: "https://northstar.example",
+      logoUrl: null,
+      lastVisitAt: "2026-04-19T10:00:00.000Z"
+    },
+    {
+      id: "recruiter-2",
+      userId: "demo-user-2",
+      companyName: "Auric Systems",
+      designation: "Talent Partner",
+      industry: "FinTech",
+      description: "Payments and risk analytics. Previously active on campus; currently no open drives.",
+      website: "https://auric.example",
+      logoUrl: null,
+      lastVisitAt: "2025-12-01T12:00:00.000Z"
+    }
+  ],
   drives: [
     {
       id: "drive-northstar-ase",
       recruiterId: "recruiter-1",
+      createdAt: "2026-01-15T10:00:00.000Z",
       title: "Associate Software Engineer",
       description: "Backend-heavy campus role for full-stack and systems-oriented candidates.",
       openings: 8,
       location: "Bengaluru",
       applicationDeadline: "2026-04-24T18:00:00.000Z",
-      status: "ACTIVE",
+      status: "PUBLISHED",
       isFeatured: true,
+      packageLpa: 14,
+      employmentType: "FULL_TIME",
+      eligibleDepartments: ["CSE", "IT", "ECE"],
+      minCgpa: 7.5,
+      maxBacklogs: 0,
+      eligibleYears: ["Final Year"],
+      requiredSkills: ["Node.js", "React", "SQL", "System design"],
       roundDeadlines: [
         { id: "rd1", label: "Shortlist freeze", date: "2026-04-18T17:00:00.000Z" },
         { id: "rd2", label: "Technical interviews", date: "2026-04-21T18:00:00.000Z" },
@@ -57,7 +95,7 @@ const recruiterStore = {
           year: "Final Year",
           status: "APPLIED",
           currentRound: "Application Review",
-          email: "nikhil.george@orbiton.local",
+          email: "student@orbiton",
           resumePreview: "API-focused resume with strong project ownership and internship summary.",
           projects: ["Drive tracker API", "Inventory dashboard"],
           testScores: [{ label: "Aptitude", value: "79 / 100" }],
@@ -120,7 +158,9 @@ const recruiterStore = {
           year: "Final Year",
           status: "OFFERED",
           currentRound: "Offer Sent",
-          email: "rahul.prasad@orbiton.local",
+          email: "student@orbiton",
+          offerPackageLpa: 12.5,
+          offerJoiningDate: "2026-07-15T00:00:00.000Z",
           resumePreview: "Testing-focused resume with automation and reporting experience.",
           projects: ["QA reporting dashboard", "Bug triage board"],
           testScores: [{ label: "Interview score", value: "8.1 / 10" }],
@@ -131,13 +171,21 @@ const recruiterStore = {
     {
       id: "drive-northstar-platform",
       recruiterId: "recruiter-1",
+      createdAt: "2026-02-01T09:00:00.000Z",
       title: "Platform Developer",
       description: "Platform role emphasizing APIs, databases, testability, and delivery hygiene.",
       openings: 5,
       location: "Hyderabad",
       applicationDeadline: "2026-04-30T18:00:00.000Z",
-      status: "ACTIVE",
+      status: "PUBLISHED",
       isFeatured: false,
+      packageLpa: 16,
+      employmentType: "FULL_TIME",
+      eligibleDepartments: ["CSE", "IT"],
+      minCgpa: 8,
+      maxBacklogs: 1,
+      eligibleYears: ["Final Year"],
+      requiredSkills: ["APIs", "PostgreSQL", "Docker", "Testing"],
       roundDeadlines: [
         { id: "rd4", label: "Assessment lock", date: "2026-04-23T17:00:00.000Z" },
         { id: "rd5", label: "Panel interviews", date: "2026-04-27T18:00:00.000Z" },
@@ -183,6 +231,50 @@ const recruiterStore = {
           notes: "Useful cross-disciplinary profile with platform support potential."
         }
       ]
+    },
+    {
+      id: "drive-crest-analytics",
+      recruiterId: "recruiter-1",
+      createdAt: "2025-12-10T12:00:00.000Z",
+      title: "Data Analyst Intern",
+      description: "Summer internship focused on dashboards, SQL, and stakeholder reporting.",
+      openings: 3,
+      location: "Remote",
+      applicationDeadline: "2026-04-10T18:00:00.000Z",
+      status: "CLOSED",
+      isFeatured: false,
+      packageLpa: 4.5,
+      employmentType: "INTERNSHIP",
+      eligibleDepartments: ["CSE", "IT", "ECE"],
+      minCgpa: 7,
+      maxBacklogs: 2,
+      eligibleYears: ["Pre-final", "Final Year"],
+      requiredSkills: ["SQL", "Excel", "Python"],
+      roundDeadlines: [
+        { id: "rd7", label: "Applications closed", date: "2026-04-10T18:00:00.000Z" }
+      ],
+      candidates: []
+    },
+    {
+      id: "drive-draft-ml-ops",
+      recruiterId: "recruiter-1",
+      createdAt: "2026-04-18T08:00:00.000Z",
+      title: "MLOps Engineer (Draft)",
+      description: "Planned Q3 campus push — not yet published.",
+      openings: 2,
+      location: "Bengaluru",
+      applicationDeadline: "2026-06-01T18:00:00.000Z",
+      status: "DRAFT",
+      isFeatured: false,
+      packageLpa: 18,
+      employmentType: "FULL_TIME",
+      eligibleDepartments: ["CSE", "IT"],
+      minCgpa: 7.5,
+      maxBacklogs: 0,
+      eligibleYears: ["Final Year"],
+      requiredSkills: ["Python", "K8s", "ML"],
+      roundDeadlines: [],
+      candidates: []
     }
   ],
   interviews: [
@@ -207,6 +299,17 @@ const recruiterStore = {
       mode: "Offline",
       panel: "Hiring Committee Room 2",
       feedbackStatus: "SUBMITTED"
+    },
+    {
+      id: "int-student-1",
+      driveId: "drive-northstar-ase",
+      candidateId: "app-102",
+      candidateName: "Nikhil George",
+      round: "Technical Interview",
+      slot: "2026-04-21T15:30:00.000Z",
+      mode: "Online",
+      panel: "https://meet.example.com/orbiton-student",
+      feedbackStatus: "PENDING"
     }
   ],
   exports: [
@@ -218,10 +321,79 @@ const recruiterStore = {
   notifications: [
     {
       id: "msg-1",
+      type: "ROUND",
+      title: "Technical interview update",
+      message: "Technical interview slots will be published by 6 PM today. Keep your resumes updated.",
+      entityId: "int-1",
       driveId: "drive-northstar-ase",
       audience: "All applicants",
-      message: "Technical interview slots will be published by 6 PM today. Keep your resumes updated.",
+      source: "RECRUITER",
       sentAt: "2026-04-17T09:30:00.000Z",
+      isRead: false
+    },
+    {
+      id: "msg-2",
+      type: "APPLICATION",
+      title: "Application submitted",
+      message: "You applied to Northstar AI – Associate Software Engineer.",
+      entityId: "drive-northstar-ase",
+      driveId: "drive-northstar-ase",
+      source: "STUDENT",
+      sentAt: "2026-04-16T14:20:00.000Z",
+      isRead: true
+    },
+    {
+      id: "msg-3",
+      type: "SHORTLIST",
+      title: "Shortlisted for Round 1",
+      message: "You have been shortlisted for the technical screening round.",
+      entityId: "app-101",
+      driveId: "drive-northstar-ase",
+      source: "RECRUITER",
+      sentAt: "2026-04-16T11:00:00.000Z",
+      isRead: false
+    },
+    {
+      id: "msg-4",
+      type: "ROUND",
+      title: "Interview scheduled",
+      message: "Technical Interview scheduled on 21 April, 11:00 AM (Online).",
+      entityId: "int-1",
+      driveId: "drive-northstar-ase",
+      source: "RECRUITER",
+      sentAt: "2026-04-15T09:00:00.000Z",
+      isRead: false
+    },
+    {
+      id: "msg-5",
+      type: "OFFER",
+      title: "Offer received",
+      message: "You received an offer from Northstar AI for Associate Software Engineer.",
+      entityId: "offer-app-105",
+      driveId: "drive-northstar-ase",
+      source: "RECRUITER",
+      sentAt: "2026-04-14T16:45:00.000Z",
+      isRead: false
+    },
+    {
+      id: "msg-6",
+      type: "DRIVE",
+      title: "New drive opened",
+      message: "New drive: Northstar AI – Platform Developer (Hyderabad).",
+      entityId: "drive-northstar-platform",
+      driveId: "drive-northstar-platform",
+      source: "RECRUITER",
+      sentAt: "2026-04-13T08:00:00.000Z",
+      isRead: true
+    },
+    {
+      id: "msg-7",
+      type: "ANNOUNCEMENT",
+      title: "Placement deadline extended",
+      message: "TPO: Summer internship registration deadline extended to 30 April.",
+      entityId: null,
+      source: "INSTITUTION",
+      sentAt: "2026-04-12T10:30:00.000Z",
       isRead: false
     }
   ]

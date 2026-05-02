@@ -1,4 +1,5 @@
 const { recruiterStore } = require("../recruiters/mockData");
+const { _resetForTests: resetMatchingVocab } = require("../matching/vocabulary");
 
 function listDrives() {
   return recruiterStore.drives;
@@ -12,6 +13,7 @@ function createDrive(payload) {
   const drive = {
     id: `drive-${Date.now()}`,
     recruiterId: recruiterStore.recruiter.id,
+    createdAt: new Date().toISOString(),
     title: payload.title || "Untitled Drive",
     description: payload.description || "",
     openings: payload.openings || 0,
@@ -20,10 +22,18 @@ function createDrive(payload) {
     status: payload.status || "DRAFT",
     isFeatured: Boolean(payload.isFeatured),
     roundDeadlines: payload.roundDeadlines || [],
-    candidates: []
+    candidates: [],
+    packageLpa: payload.packageLpa ?? null,
+    employmentType: payload.employmentType || "FULL_TIME",
+    eligibleDepartments: payload.eligibleDepartments || [],
+    minCgpa: payload.minCgpa ?? null,
+    maxBacklogs: payload.maxBacklogs ?? 0,
+    eligibleYears: payload.eligibleYears || [],
+    requiredSkills: payload.requiredSkills || []
   };
 
   recruiterStore.drives.push(drive);
+  resetMatchingVocab();
   return drive;
 }
 

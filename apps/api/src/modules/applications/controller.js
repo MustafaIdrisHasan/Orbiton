@@ -39,12 +39,33 @@ function deleteApplication(_req, res) {
   res.status(204).send();
 }
 
-function applyToDrive(req, res) {
-  res.status(201).json({
-    driveId: req.params.driveId,
-    studentId: req.user?.id,
-    message: "Apply to drive endpoint ready for implementation"
-  });
+async function applyToDrive(req, res, next) {
+  try {
+    const userId = req.user?.userId || req.user?.id;
+    if (!userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+    const out = await service.applyToDrive(req.params.driveId, userId);
+    if (out.error === "NOT_FOUND") {
+      res.status(404).json({ message: "Drive not found" });
+      return;
+    }
+    if (out.error === "NOT_OPEN") {
+      res.status(400).json({ message: "This drive is not accepting applications" });
+      return;
+    }
+    if (out.error === "DUPLICATE") {
+      res.status(409).json({ message: "You have already applied to this drive" });
+      return;
+    }
+    res.status(201).json({
+      resource: "applications",
+      ...out
+    });
+  } catch (err) {
+    next(err);
+  }
 }
 
 function shortlistApplication(req, res) {

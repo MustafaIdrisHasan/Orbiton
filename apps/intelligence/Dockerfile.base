@@ -1,0 +1,34 @@
+# Base image used by all three Python services.
+# Service-specific Dockerfiles add their own command.
+FROM python:3.11-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+# System deps for PyMuPDF, sentence-transformers, etc.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgomp1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install python deps using pyproject.toml
+COPY pyproject.toml ./
+RUN pip install -e .
+
+# Pre-download the spaCy transformer model so first-request latency is sane.
+# Comment out for thinner CI images and download on first run instead.
+RUN python -m spacy download en_core_web_trf || true
+
+COPY shared ./shared
+COPY resume_service ./resume_service
+COPY matching_service ./matching_service
+COPY prediction_service ./prediction_service
+
+EXPOSE 8001 8002 8003
+
+CMD ["python", "-c", "print('Override CMD in service-specific Dockerfile')"]

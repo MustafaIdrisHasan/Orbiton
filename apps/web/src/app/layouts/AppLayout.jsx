@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { getDrawerMenu, getRoleLabel } from "../../shared/data/accountData";
+import { fetchNotifications } from "../../shared/api/notifications";
+import { normalizeNotificationItem } from "../../shared/notifications/normalize";
+
+const NOTIFICATIONS_POLL_MS = 20_000;
 
 const navItems = [
   ["Placements", "/drives"],
@@ -125,7 +129,49 @@ function AccountDrawer({ isOpen, onClose, user, onLogout }) {
 export function AppLayout() {
   const { user, logout } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(/** @type {number | null} */ (null));
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user?.email) {
+      setUnreadNotifCount(0);
+      return undefined;
+    }
+    let cancelled = false;
+    async function tick() {
+      try {
+        const data = await fetchNotifications();
+        const list = Array.isArray(data?.items) ? data.items : [];
+        const n = list
+          .map((raw) => normalizeNotificationItem(raw))
+          .filter((item) => !item.isRead).length;
+        if (!cancelled) {
+          setUnreadNotifCount(n);
+        }
+      } catch {
+        if (!cancelled) {
+          setUnreadNotifCount((c) => (c == null ? 0 : c));
+        }
+      }
+    }
+    tick();
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        tick();
+      }
+    }, NOTIFICATIONS_POLL_MS);
+    const onVis = () => {
+      if (document.visibilityState === "visible") {
+        tick();
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [user?.email]);
 
   return (
     <div className="app-shell">
@@ -154,7 +200,9 @@ export function AppLayout() {
           </nav>
 
           <IconButton label="Notifications" onClick={() => navigate("/notifications")}>
-            <span className="icon-badge">3</span>
+            {unreadNotifCount != null && unreadNotifCount > 0 ? (
+              <span className="icon-badge">{unreadNotifCount > 99 ? "99+" : unreadNotifCount}</span>
+            ) : null}
             <BellIcon />
           </IconButton>
 

@@ -22,6 +22,7 @@ export const profileSectionLabels = {
 
 export const drawerMenuByRole = {
   STUDENT: [
+    { label: "Student Home", to: "/student" },
     { label: "View Profile", to: "/profile?section=info" },
     { label: "Resume Management", to: "/resumes" },
     { label: "My Applications", to: "/applications" },
@@ -45,7 +46,9 @@ export const drawerMenuByRole = {
   TPO: [
     { label: "View Profile", to: "/profile?section=info" },
     { label: "TPO Dashboard", to: "/tpo/dashboard" },
-    { label: "Drives", to: "/tpo/drives" },
+    { label: "Create drive (students see when published)", to: "/drives/create" },
+    { label: "Manage drives & publish", to: "/drives/mine" },
+    { label: "Drives (overview)", to: "/tpo/drives" },
     { label: "Students", to: "/tpo/students" },
     { label: "Applications", to: "/tpo/applications" },
     { label: "Offers", to: "/tpo/offers" },
