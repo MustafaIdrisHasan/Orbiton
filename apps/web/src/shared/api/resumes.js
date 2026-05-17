@@ -47,6 +47,10 @@ export async function analyzeResume(resumeId, body) {
   }
 }
 
+export async function reanalyzeUpload(resumeId) {
+  return analyzeResume(resumeId, { reextract: true });
+}
+
 export async function fetchResumeScore(resumeId) {
   try {
     return await apiRequest(`/api/v1/resumes/${encodeURIComponent(resumeId)}/score`);

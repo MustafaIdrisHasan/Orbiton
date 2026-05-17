@@ -121,7 +121,9 @@ function scoreExperience(profile) {
   }
   const internshipScore = clamp01(internshipMonths / 6);
   const totalScore = clamp01(totalMonths / 12);
-  const score = clamp01(0.6 * internshipScore + 0.4 * totalScore);
+  // Weight total experience (60%) as the primary driver; internship adds a
+  // quality bonus (40%) rather than being the dominant requirement.
+  const score = clamp01(0.6 * totalScore + 0.4 * internshipScore);
 
   return {
     score,

@@ -6,6 +6,31 @@ const { getStorageAdapter } = require("../../integrations/storage");
 const { score } = require("./scoring/scorer");
 const store = require("./store");
 const { ROLES, normalizeRoles } = require("../../core/constants/roles");
+const { buildEnhancedProfile } = require("./upload");
+
+const APP_ROOT_FOR_REEXTRACT = path.resolve(__dirname, "..", "..", "..");
+
+async function reextractFromUpload(uploadId) {
+  const row = await store.getUpload(uploadId);
+  if (!row || !row.storageKey) return null;
+  const abs = path.resolve(APP_ROOT_FOR_REEXTRACT, row.storageKey);
+  if (!fs.existsSync(abs)) return null;
+  let buffer;
+  try {
+    buffer = await fs.promises.readFile(abs);
+  } catch {
+    return null;
+  }
+  let text = "";
+  try {
+    const pdfParse = require("pdf-parse");
+    const result = await pdfParse(buffer);
+    text = typeof result?.text === "string" ? result.text : "";
+  } catch {
+    text = "";
+  }
+  return buildEnhancedProfile(text);
+}
 
 // Plain router — not createModuleRouter(), which registers a no-op `DELETE /:id`
 // that would run before the real remove handler and leave uploads in the store.
@@ -56,9 +81,26 @@ router.post("/:id/analyze", requireResumeScoring, async (req, res, next) => {
   try {
     const studentId = resolveStudentId(req);
     const resumeId = req.params.id;
-    const overrideProfile = req.body && typeof req.body === "object" ? req.body.profile : null;
-    const profile = overrideProfile || (await store.getProfile(studentId)) || {};
-    const ctx = (req.body && req.body.context) || {};
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const overrideProfile = body.profile || null;
+    const ctx = body.context || {};
+
+    let profile;
+    if (body.reextract) {
+      // Re-run the PDF extractor on the persisted upload — this is what the
+      // "Re-analyze upload" button hits, so the score reflects the latest
+      // extractor logic without forcing the user to re-upload the file.
+      const re = await reextractFromUpload(resumeId);
+      if (!re) {
+        res.status(404).json({ message: "No uploaded PDF to re-analyze" });
+        return;
+      }
+      profile = re;
+      await store.setProfile(studentId, profile);
+    } else {
+      profile = overrideProfile || (await store.getProfile(studentId)) || {};
+    }
+
     const result = score(profile, ctx);
     await store.setScore(resumeId, studentId, result);
     res.json({
@@ -69,7 +111,8 @@ router.post("/:id/analyze", requireResumeScoring, async (req, res, next) => {
       weights: result.weights,
       subscores: result.subscores,
       finalScore: result.finalScore,
-      tips: result.tips
+      tips: result.tips,
+      profile: body.reextract ? profile : undefined
     });
   } catch (err) {
     next(err);

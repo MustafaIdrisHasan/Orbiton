@@ -8,6 +8,7 @@ import {
   fetchResumeScore,
   fetchStudentProfileFull,
   putResumeProfile,
+  reanalyzeUpload,
   uploadResumePdf
 } from "../../shared/api/resumes";
 import { MyResumesList } from "./MyResumesList";
@@ -463,6 +464,31 @@ export function ResumesPage() {
     }
   }
 
+  async function handleReanalyze() {
+    setToast("");
+    setError("");
+    try {
+      const result = await reanalyzeUpload(analysisResumeId);
+      if (result) {
+        setScore(result);
+        setToast(`Re-analyzed · score ${result.finalScore}/100`);
+        await refreshProfile();
+      } else {
+        setError("Re-analyze failed.");
+      }
+    } catch (e) {
+      if (e instanceof ApiClientError && e.code === RESUME_FEATURE_DISABLED) {
+        setFeatureEnabled(false);
+        return;
+      }
+      if (e?.status === 404) {
+        setError("No uploaded PDF found — upload one first.");
+        return;
+      }
+      setError(e?.message || "Re-analyze failed.");
+    }
+  }
+
   async function handleUpload(event) {
     const file = event.target?.files?.[0];
     event.target.value = "";
@@ -550,15 +576,25 @@ export function ResumesPage() {
           {toast ? <p className="eyebrow">{toast}</p> : null}
           {error ? <p className="card-note">{error}</p> : null}
         </div>
-        <label className="resume-upload">
-          <span className="button button-secondary">Upload PDF</span>
-          <input
-            type="file"
-            accept="application/pdf,.pdf"
-            onChange={handleUpload}
-            style={{ display: "none" }}
-          />
-        </label>
+        <div className="resume-upload-actions">
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={handleReanalyze}
+            title="Re-run the extractor on your uploaded PDF and rescore."
+          >
+            Re-analyze upload
+          </button>
+          <label className="resume-upload">
+            <span className="button button-secondary">Upload PDF</span>
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              onChange={handleUpload}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
       </header>
 
       <MyResumesList

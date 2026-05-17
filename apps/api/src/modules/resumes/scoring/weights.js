@@ -8,7 +8,7 @@ const DEFAULT_WEIGHTS = Object.freeze({
 
 const REQUIRED_SECTIONS = Object.freeze(["skills", "education", "projects", "experience"]);
 
-const MODEL_VERSION = "rs-v0.1.0";
+const MODEL_VERSION = "rs-v0.2.0";
 
 module.exports = {
   DEFAULT_WEIGHTS,
