@@ -50,6 +50,11 @@ import { TpoAnalyticsPage } from "../../features/tpo/TpoAnalyticsPage";
 import { TpoReportsPage } from "../../features/tpo/TpoReportsPage";
 import { TpoAnnouncementsPage } from "../../features/tpo/TpoAnnouncementsPage";
 import { TpoApplicationProfilePage } from "../../features/tpo/TpoApplicationProfilePage";
+import { CompanyPortalPage } from "../../features/company/CompanyPortalPage";
+import { CompanyApplicantsPage } from "../../features/company/CompanyApplicantsPage";
+import { StudentOffersPage } from "../../features/offers/StudentOffersPage";
+import { CompanyChatPage } from "../../features/chat/CompanyChatPage";
+import { TpoChatPage } from "../../features/chat/TpoChatPage";
 import { NotFoundPage } from "../../pages/NotFoundPage";
 import { UnauthorizedPage } from "../../pages/UnauthorizedPage";
 import { ErrorPage } from "../../pages/ErrorPage";
@@ -84,6 +89,7 @@ export const router = createBrowserRouter([
       { path: "applications", element: <ApplicationsPage /> },
       { path: "rounds", element: <RoundsPage /> },
       { path: "offers", element: <OffersPage /> },
+      { path: "offers/me", element: <StudentOffersPage /> },
       { path: "resumes", element: <ResumesPage /> },
       { path: "analytics", element: <AnalyticsPage /> },
       { path: "analytics/department", element: <DepartmentAnalyticsPage /> },
@@ -332,6 +338,38 @@ export const router = createBrowserRouter([
         element: (
           <RequireRole roles={["TPO"]}>
             <TpoAnnouncementsPage />
+          </RequireRole>
+        )
+      },
+      {
+        path: "company",
+        element: (
+          <RequireRole roles={["COMPANY"]}>
+            <CompanyPortalPage />
+          </RequireRole>
+        )
+      },
+      {
+        path: "company/applicants",
+        element: (
+          <RequireRole roles={["COMPANY"]}>
+            <CompanyApplicantsPage />
+          </RequireRole>
+        )
+      },
+      {
+        path: "company/chat",
+        element: (
+          <RequireRole roles={["COMPANY"]}>
+            <CompanyChatPage />
+          </RequireRole>
+        )
+      },
+      {
+        path: "tpo/chat",
+        element: (
+          <RequireRole roles={["TPO"]}>
+            <TpoChatPage />
           </RequireRole>
         )
       },

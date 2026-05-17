@@ -3,6 +3,8 @@ const controller = require("./controller");
 
 const router = express.Router();
 
+router.get("/me", controller.listStudentOffers);
+router.post("/:id/respond", controller.respondToOffer);
 router.get("/", controller.listOffers);
 router.get("/:id", controller.getOffer);
 router.post("/", controller.createOffer);

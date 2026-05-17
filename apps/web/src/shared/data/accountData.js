@@ -3,7 +3,8 @@ export const ROLE_LABELS = {
   RECRUITER: "Recruiter",
   FACULTY: "Faculty",
   ADMIN: "Admin",
-  TPO: "Placement Officer"
+  TPO: "Placement Officer",
+  COMPANY: "Company"
 };
 
 export const PROFILE_SECTIONS = {
@@ -26,7 +27,7 @@ export const drawerMenuByRole = {
     { label: "View Profile", to: "/profile?section=info" },
     { label: "Resume Management", to: "/resumes" },
     { label: "My Applications", to: "/applications" },
-    { label: "Offers", to: "/offers" },
+    { label: "Offers", to: "/offers/me" },
     { label: "Notifications", to: "/notifications" },
     { label: "Settings", to: "/profile?section=notifications" },
     { label: "Logout", action: "logout", tone: "danger" }
@@ -56,6 +57,7 @@ export const drawerMenuByRole = {
     { label: "Analytics", to: "/tpo/analytics" },
     { label: "Reports", to: "/tpo/reports" },
     { label: "Announcements", to: "/tpo/announcements" },
+    { label: "Chat with Companies", to: "/tpo/chat" },
     { label: "Notifications", to: "/notifications" },
     { label: "Settings", to: "/profile?section=notifications" },
     { label: "Logout", action: "logout", tone: "danger" }
@@ -78,6 +80,13 @@ export const drawerMenuByRole = {
     { label: "Reports", to: "/admin/reports" },
     { label: "Notifications", to: "/notifications" },
     { label: "Settings", to: "/profile?section=notifications" },
+    { label: "Logout", action: "logout", tone: "danger" }
+  ],
+  COMPANY: [
+    { label: "Company Workspace", to: "/company" },
+    { label: "Applicants", to: "/company/applicants" },
+    { label: "Chat with TPO", to: "/company/chat" },
+    { label: "Notifications", to: "/notifications" },
     { label: "Logout", action: "logout", tone: "danger" }
   ]
 };

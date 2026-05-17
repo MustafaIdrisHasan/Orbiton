@@ -3,6 +3,7 @@ const resumeStore = require("../resumes/store");
 const authRepository = require("../auth/auth.repository");
 const notificationsService = require("../notifications/service");
 const drivesService = require("../drives/service");
+const companiesService = require("../companies/service");
 
 function toCandidateRow(candidate) {
   return {
@@ -194,6 +195,35 @@ async function applyToDrive(driveId, userId) {
     // Non-fatal: confirmation toast in the UI still tells the student.
     // eslint-disable-next-line no-console
     console.warn("[applications] student confirmation notification failed:", err.message);
+  }
+
+  // Fan-out to any COMPANY-role user whose set companyName matches this
+  // drive's company so they see the application in their portal inbox.
+  try {
+    const companyMatches = companiesService.findCompanyUserIdsByCompanyName(company);
+    for (const { userId: companyUserId } of companyMatches) {
+      await notificationsService.notifyUser(companyUserId, {
+        type: "APPLICATION",
+        title: `New applicant · ${app.driveTitle}`,
+        message: `${app.name} (${app.email}) applied to ${app.driveTitle}. Branch: ${app.branch || "—"}, CGPA: ${app.cgpa ?? "—"}, Skills: ${skillLine}`,
+        entityId: app.id,
+        driveId: app.driveId,
+        source: "STUDENT",
+        studentSnapshot: {
+          name: app.name,
+          email: app.email,
+          branch: app.branch,
+          rollNumber: app.rollNumber,
+          cgpa: app.cgpa,
+          backlogs: app.backlogs,
+          skills: app.skills,
+          year: app.year
+        }
+      });
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("[applications] company fan-out failed:", err.message);
   }
 
   return {

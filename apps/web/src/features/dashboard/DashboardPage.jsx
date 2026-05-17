@@ -63,5 +63,9 @@ export function DashboardPage() {
     return <Navigate to="/tpo/dashboard" replace />;
   }
 
+  if (role === "COMPANY") {
+    return <Navigate to="/company" replace />;
+  }
+
   return <RoleDashboard role={role} />;
 }

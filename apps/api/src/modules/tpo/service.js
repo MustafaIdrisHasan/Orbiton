@@ -1,6 +1,7 @@
 const { tpoDashboardData, tpoStudents } = require("./mockData");
 const pgRepo = require("./repository.postgres");
 const notificationsService = require("../notifications/service");
+const audience = require("../notifications/audience");
 const applicationsService = require("../applications/service");
 const resumeListService = require("../resumes/list.service");
 const { pool } = require("../../integrations/postgres/pool");
@@ -196,6 +197,50 @@ async function createAnnouncement(payload = {}) {
   return item;
 }
 
+/**
+ * Send a 1:1 message from the TPO to the student behind an application.
+ * Persists as a notification scoped to the student's user_id.
+ *
+ * @param {string} applicationId
+ * @param {{subject?:string,message:string}} payload
+ */
+async function contactApplicant(applicationId, payload = {}) {
+  const message = String(payload.message || "").trim();
+  if (!message) {
+    return { error: "EMPTY_MESSAGE" };
+  }
+
+  const profile = applicationsService.getCandidateProfile(applicationId);
+  if (!profile) {
+    return { error: "NOT_FOUND" };
+  }
+
+  const studentEmail = profile.personalDetails?.email;
+  if (!studentEmail) {
+    return { error: "NO_STUDENT_EMAIL" };
+  }
+
+  const studentUserId = await audience.resolveStudentUserIdByApplicantEmail(studentEmail);
+  if (!studentUserId) {
+    return { error: "NO_STUDENT_USER" };
+  }
+
+  const title = payload.subject && String(payload.subject).trim()
+    ? String(payload.subject).trim()
+    : "Message from Placement Office";
+
+  const notification = await notificationsService.notifyUser(studentUserId, {
+    type: "ANNOUNCEMENT",
+    title,
+    message,
+    entityId: applicationId,
+    driveId: profile.driveId || null,
+    source: "INSTITUTION",
+  });
+
+  return { ok: true, notification };
+}
+
 module.exports = {
   getDashboard,
   listStudents,
@@ -207,4 +252,5 @@ module.exports = {
   listReports,
   listAnnouncements,
   createAnnouncement,
+  contactApplicant,
 };

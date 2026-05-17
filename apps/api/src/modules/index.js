@@ -29,6 +29,7 @@ const adminRouter = require("./admin");
 const matchingRouter = require("./matching");
 const predictionsRouter = require("./predictions");
 const internalRouter = require("./internal");
+const chatRouter = require("./chat");
 const intelligence = require("../integrations/intelligence");
 
 const apiRouter = express.Router();
@@ -87,6 +88,7 @@ apiRouter.use("/admin", requireAuth, requireRoles(ROLES.ADMIN), adminRouter);
 apiRouter.use("/matching", requireAuth, matchingRouter);
 apiRouter.use("/predictions", requireAuth, predictionsRouter);
 apiRouter.use("/internal", internalRouter);
+apiRouter.use("/chat", requireAuth, chatRouter);
 
 module.exports = {
   apiRouter

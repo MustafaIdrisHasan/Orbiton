@@ -3,7 +3,8 @@ const ROLES = {
   FACULTY: "FACULTY",
   ADMIN: "ADMIN",
   RECRUITER: "RECRUITER",
-  TPO: "TPO"
+  TPO: "TPO",
+  COMPANY: "COMPANY"
 };
 
 function normalizeRoles(value = []) {

@@ -1,5 +1,7 @@
 const { ROLES, normalizeRoles } = require("../../core/constants/roles");
 const service = require("./service");
+const notificationsService = require("../notifications/service");
+const companiesService = require("../companies/service");
 
 function rolesFromRequestUser(user) {
   const raw = [];
@@ -43,8 +45,36 @@ function getDrive(req, res) {
   res.json(drive);
 }
 
-function createDrive(req, res) {
-  res.status(201).json(service.createDrive(req.body));
+async function createDrive(req, res, next) {
+  try {
+    const result = service.createDrive(req.body, req.user);
+    const drive = result.drive;
+
+    // Notify any COMPANY-role user whose set companyName matches this drive
+    // (only meaningful when the drive was created with a companyName, e.g.
+    // by a TPO).
+    if (drive?.companyName) {
+      const matches = companiesService.findCompanyUserIdsByCompanyName(drive.companyName);
+      for (const { userId } of matches) {
+        try {
+          await notificationsService.notifyUser(userId, {
+            type: "DRIVE",
+            title: `New drive for ${drive.companyName}`,
+            message: `${drive.createdByRole === "TPO" ? "Placement office" : "Recruiter"} opened "${drive.title}" associated with your company.`,
+            entityId: drive.id,
+            driveId: drive.id,
+            source: "INSTITUTION"
+          });
+        } catch {
+          /* non-fatal */
+        }
+      }
+    }
+
+    res.status(201).json(result.summary);
+  } catch (err) {
+    next(err);
+  }
 }
 
 function updateDrive(req, res) {

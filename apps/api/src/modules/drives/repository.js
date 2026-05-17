@@ -29,7 +29,13 @@ function createDrive(payload) {
     minCgpa: payload.minCgpa ?? null,
     maxBacklogs: payload.maxBacklogs ?? 0,
     eligibleYears: payload.eligibleYears || [],
-    requiredSkills: payload.requiredSkills || []
+    requiredSkills: payload.requiredSkills || [],
+    // TPO-set company association (free text). When matched against a
+    // COMPANY-role user's profile.companyName it routes notifications back
+    // to that company login.
+    companyName: payload.companyName ? String(payload.companyName).trim() : "",
+    createdByRole: payload.createdByRole || null,
+    createdByUserId: payload.createdByUserId || null
   };
 
   recruiterStore.drives.push(drive);

@@ -7,6 +7,7 @@
     "dev": "vite",
     "dev:student": "cross-env VITE_DEV_PORTAL=student vite --port 5173 --strictPort",
     "dev:tpo": "cross-env VITE_DEV_PORTAL=tpo vite --port 5174 --strictPort",
+    "dev:company": "cross-env VITE_DEV_PORTAL=company vite --port 5175 --strictPort",
     "dev:alt": "npm run dev:tpo",
     "build": "vite build",
     "preview": "vite preview",

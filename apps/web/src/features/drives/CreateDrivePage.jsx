@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../app/providers/AuthProvider";
 import { createDrive } from "../../shared/api/drives";
 import { ApiClientError } from "../../shared/api/client";
 
@@ -12,6 +13,8 @@ function splitList(text) {
 
 export function CreateDrivePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isTpo = user?.roles?.[0] === "TPO";
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [openings, setOpenings] = useState("5");
@@ -22,6 +25,7 @@ export function CreateDrivePage() {
   const [minCgpa, setMinCgpa] = useState("7");
   const [maxBacklogs, setMaxBacklogs] = useState("0");
   const [packageLpa, setPackageLpa] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [publishForStudents, setPublishForStudents] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -58,6 +62,7 @@ export function CreateDrivePage() {
       eligibleYears: [],
       requiredSkills,
       packageLpa: packageLpa === "" ? null : Number(packageLpa),
+      companyName: companyName.trim(),
       roundDeadlines: []
     };
     setBusy(true);
@@ -129,6 +134,19 @@ export function CreateDrivePage() {
             Package (LPA, optional)
             <input type="number" step="0.1" min={0} value={packageLpa} onChange={(e) => setPackageLpa(e.target.value)} placeholder="e.g. 12" />
           </label>
+          {isTpo ? (
+            <label>
+              Associated company name
+              <input
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g. Northstar AI"
+              />
+              <span className="muted" style={{ display: "block", marginTop: "0.35rem", fontSize: "0.85rem" }}>
+                If a company has signed in with this exact name, they'll receive a notification when this drive is created and when students apply.
+              </span>
+            </label>
+          ) : null}
         </fieldset>
 
         <fieldset disabled={busy}>

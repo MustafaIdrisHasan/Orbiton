@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { openProtectedApiFile } from "../../shared/api/client";
-import { fetchTpoApplicationProfile, fetchTpoStudentResumes } from "../../shared/api/tpo";
+import {
+  contactTpoApplicant,
+  fetchTpoApplicationProfile,
+  fetchTpoStudentResumes,
+} from "../../shared/api/tpo";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -12,6 +16,84 @@ function formatDate(value) {
   }
 }
 
+function ContactStudentModal({ applicationId, studentName, onClose, onSent }) {
+  const [subject, setSubject] = useState("Message from Placement Office");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setError("");
+    const trimmed = message.trim();
+    if (!trimmed) {
+      setError("Message cannot be empty.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await contactTpoApplicant(applicationId, { subject, message: trimmed });
+      onSent(`Message sent to ${studentName || "student"}.`);
+    } catch (err) {
+      setError(err?.message || "Could not send message.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+      <div
+        className="modal-panel dashboard-card"
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2>Contact {studentName || "student"}</h2>
+        <p className="subtle">
+          The student will receive this as a notification in their Orbiton inbox.
+        </p>
+        <form onSubmit={handleSubmit} className="stack">
+          <label className="settings-field">
+            Subject
+            <input
+              className="profile-input"
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Subject"
+            />
+          </label>
+          <label className="settings-field">
+            Message
+            <textarea
+              className="profile-input"
+              rows={5}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Write your message to the student…"
+            />
+          </label>
+          {error ? <p className="form-error">{error}</p> : null}
+          <div className="modal-actions">
+            <button type="submit" className="button" disabled={busy}>
+              {busy ? "Sending…" : "Send message"}
+            </button>
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={onClose}
+              disabled={busy}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function TpoApplicationProfilePage() {
   const { applicationId } = useParams();
   const [profile, setProfile] = useState(null);
@@ -19,6 +101,8 @@ export function TpoApplicationProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openingResumeId, setOpeningResumeId] = useState(/** @type {string|null} */ (null));
+  const [contactOpen, setContactOpen] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -92,10 +176,23 @@ export function TpoApplicationProfilePage() {
             {personal.year ? ` • Year ${personal.year}` : ""}
             {profile.status ? ` • Status: ${profile.status}` : ""}
           </p>
+          {statusMessage ? <p className="eyebrow">{statusMessage}</p> : null}
         </div>
-        <Link className="button button-secondary" to={`/drives/${profile.driveId}`}>
-          View drive
-        </Link>
+        <div className="page-header__actions" style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            type="button"
+            className="button"
+            onClick={() => {
+              setStatusMessage("");
+              setContactOpen(true);
+            }}
+          >
+            Contact
+          </button>
+          <Link className="button button-secondary" to={`/drives/${profile.driveId}`}>
+            View drive
+          </Link>
+        </div>
       </header>
 
       <div className="detail-grid">
@@ -200,6 +297,18 @@ export function TpoApplicationProfilePage() {
           <h3>Notes</h3>
           <p className="card-note">{profile.notes}</p>
         </article>
+      ) : null}
+
+      {contactOpen ? (
+        <ContactStudentModal
+          applicationId={applicationId}
+          studentName={displayName}
+          onClose={() => setContactOpen(false)}
+          onSent={(msg) => {
+            setContactOpen(false);
+            setStatusMessage(msg);
+          }}
+        />
       ) : null}
     </section>
   );

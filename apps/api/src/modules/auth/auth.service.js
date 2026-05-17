@@ -10,7 +10,8 @@ const DEFAULT_USERS = [
   { email: "faculty@orbiton", role: ROLES.FACULTY, phoneNumber: "+91 90000 00002" },
   { email: "recruiter@orbiton", role: ROLES.RECRUITER, phoneNumber: "+91 90000 00003" },
   { email: "student@orbiton", role: ROLES.STUDENT, phoneNumber: "+91 90000 00004" },
-  { email: "tpo@orbiton", role: ROLES.TPO, phoneNumber: "+91 90000 00005" }
+  { email: "tpo@orbiton", role: ROLES.TPO, phoneNumber: "+91 90000 00005" },
+  { email: "company@orbiton", role: ROLES.COMPANY, phoneNumber: "+91 90000 00006" }
 ];
 
 function createAuthService({
@@ -147,6 +148,32 @@ function createAuthService({
           seededUsers
         };
       });
+    },
+
+    // Lightweight, idempotent on-demand seed for the company@orbiton user so
+    // existing databases that were bootstrapped before the COMPANY role
+    // existed pick it up automatically without a manual `npm run seed:auth`.
+    async ensureCompanyUserSeeded() {
+      try {
+        return await repository.withTransaction(async (client) => {
+          await repository.ensureRoles([ROLES.COMPANY], client);
+          const passwordHash = await bcryptLib.hash("1234", 10);
+          const user = await repository.upsertUser(
+            {
+              email: "company@orbiton",
+              passwordHash,
+              phoneNumber: "+91 90000 00006",
+              isActive: true
+            },
+            client
+          );
+          await repository.assignRoleToUser(user.id, ROLES.COMPANY, client);
+          return { id: user.id, email: user.email };
+        });
+      } catch {
+        // Non-fatal: dev environments without PG simply won't have the user.
+        return null;
+      }
     }
   };
 }

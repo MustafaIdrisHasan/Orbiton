@@ -7,6 +7,7 @@ const devPortal = import.meta.env.VITE_DEV_PORTAL;
 function devPortalLabel(portal) {
   if (portal === "student") return "Student (local dev)";
   if (portal === "tpo") return "TPO (local dev)";
+  if (portal === "company") return "Company (local dev)";
   return null;
 }
 

@@ -396,7 +396,16 @@ const recruiterStore = {
       sentAt: "2026-04-12T10:30:00.000Z",
       isRead: false
     }
-  ]
+  ],
+  // Company-issued offers. Shape:
+  // { id, applicationId, studentEmail, studentUserId, driveId, driveTitle,
+  //   companyName, companyEmail, companyContact, role, packageLpa,
+  //   joiningDate, note, status, createdAt }
+  companyOffers: [],
+
+  // In-memory chat rooms. Keyed by roomId (e.g. "company:northstar-ai").
+  // Each value is an array of { id, roomId, from, fromRole, fromName, message, sentAt }.
+  chatMessages: {}
 };
 
 module.exports = {

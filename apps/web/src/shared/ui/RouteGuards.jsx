@@ -52,7 +52,8 @@ export function RoleHomeRedirect() {
       RECRUITER: "/recruiter",
       FACULTY: "/faculty",
       ADMIN: "/admin/dashboard",
-      TPO: "/tpo/dashboard"
+      TPO: "/tpo/dashboard",
+      COMPANY: "/company"
     }[role] || "/dashboard";
 
   return <Navigate to={target} replace />;

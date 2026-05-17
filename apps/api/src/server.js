@@ -1,10 +1,14 @@
 require("reflect-metadata");
 const { env } = require("./config/env");
 const { app } = require("./app");
+const { authService } = require("./modules/auth/auth.service");
 
 const server = app.listen(env.port, () => {
   // eslint-disable-next-line no-console
   console.log(`Orbiton API listening on port ${env.port}`);
+  // Best-effort: ensure the COMPANY role + company@orbiton user exist for
+  // databases bootstrapped before the COMPANY role was added.
+  authService.ensureCompanyUserSeeded().catch(() => {});
 });
 
 server.on("error", (err) => {

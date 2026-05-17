@@ -21,6 +21,10 @@ function getLifecycleStatus(drive) {
 }
 
 function companyForDrive(drive) {
+  // TPO-created drives carry a free-text companyName directly on the drive.
+  if (drive?.companyName) {
+    return drive.companyName;
+  }
   if (!drive?.recruiterId) {
     return recruiterStore.recruiter.companyName;
   }
@@ -134,8 +138,13 @@ function getDrive(id) {
   return drive ? toDriveDetail(drive) : null;
 }
 
-function createDrive(payload) {
-  return toDriveSummary(repository.createDrive(payload));
+function createDrive(payload, user) {
+  const driveRecord = repository.createDrive({
+    ...payload,
+    createdByRole: user?.role || user?.roles?.[0] || null,
+    createdByUserId: user?.userId || user?.id || null
+  });
+  return { drive: driveRecord, summary: toDriveSummary(driveRecord) };
 }
 
 function updateDriveContent(id, payload) {

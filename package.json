@@ -7,11 +7,13 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "concurrently -k -n api,student,tpo,company -c cyan,green,magenta,yellow \"npm run dev:api\" \"npm run dev:web:student\" \"npm run dev:web:tpo\" \"npm run dev:web:company\"",
     "dev:stack": "concurrently -k -n api,web -c cyan,green \"npm run dev:api\" \"npm run dev:web\"",
-    "dev:stack:pair": "concurrently -k -n api,web,web2 -c cyan,green,magenta \"npm run dev:api\" \"npm run dev:web:student\" \"npm run dev:web:tpo\"",
+    "dev:stack:pair": "concurrently -k -n api,student,tpo -c cyan,green,magenta \"npm run dev:api\" \"npm run dev:web:student\" \"npm run dev:web:tpo\"",
     "dev:web": "npm run dev --workspace @orbiton/web",
     "dev:web:student": "npm run dev:student --workspace @orbiton/web",
     "dev:web:tpo": "npm run dev:tpo --workspace @orbiton/web",
+    "dev:web:company": "npm run dev:company --workspace @orbiton/web",
     "dev:web:alt": "npm run dev:alt --workspace @orbiton/web",
     "dev:api": "npm run dev --workspace @orbiton/api",
     "dev:ml": "python apps/ml-service/app.py",

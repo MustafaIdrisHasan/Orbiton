@@ -34,3 +34,10 @@ export async function fetchTpoStudentResumes(id) {
 export function fetchTpoApplicationProfile(applicationId) {
   return apiRequest(`/api/v1/tpo/applications/${encodeURIComponent(applicationId)}/profile`);
 }
+
+export function contactTpoApplicant(applicationId, payload) {
+  return apiRequest(`/api/v1/tpo/applications/${encodeURIComponent(applicationId)}/contact`, {
+    method: "POST",
+    body: payload,
+  });
+}

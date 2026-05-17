@@ -84,6 +84,31 @@ async function createAnnouncement(req, res, next) {
   }
 }
 
+async function contactApplicant(req, res, next) {
+  try {
+    const result = await service.contactApplicant(req.params.applicationId, req.body || {});
+    if (result.error === "EMPTY_MESSAGE") {
+      res.status(400).json({ message: "Message is required" });
+      return;
+    }
+    if (result.error === "NOT_FOUND") {
+      res.status(404).json({ message: "Application not found" });
+      return;
+    }
+    if (result.error === "NO_STUDENT_EMAIL" || result.error === "NO_STUDENT_USER") {
+      res.status(404).json({ message: "Student account could not be resolved for this application" });
+      return;
+    }
+    res.status(201).json({
+      ok: true,
+      notificationId: result.notification?.id || null,
+      message: "Message sent to student"
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getDashboard,
   listStudents,
@@ -95,4 +120,5 @@ module.exports = {
   listReports,
   listAnnouncements,
   createAnnouncement,
+  contactApplicant,
 };
